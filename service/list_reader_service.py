@@ -20,8 +20,8 @@ def save_identifier_list(provider, isbns):
         list_file.close()
 
 
-def load_identifier_list_of_type(project, identifier_type):
-    path_to_file = os.getcwd() + '/data/input/' + project + '/' + identifier_type + '_list.txt'
+def load_identifier_list_of_type(identifier_type):
+    path_to_file = os.getcwd() + '/data/input/' + identifier_type + '_list.txt'
     with open(path_to_file) as f:
         isbns = f.readlines()
         f.close()
