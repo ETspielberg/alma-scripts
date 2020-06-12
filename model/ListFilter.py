@@ -1,6 +1,9 @@
 import os
 import re
 
+from model.LineChecker import LineChecker
+
+output_dir = 'data/output/{}'
 
 class ListFilter:
 
@@ -12,7 +15,6 @@ class ListFilter:
         else:
             self._line_checkers = line_checkers
         self.test_ordering()
-        self.clean_copy_file(project)
 
     def test_ordering(self):
         with open('data/input/' + self._filename, 'r', encoding="utf8") as input_file:
@@ -38,7 +40,7 @@ class ListFilter:
                         continue
             return is_well_ordered
 
-    def clean_copy_file(self, project):
+    def clean_temp_folder(self, project):
         temp_dir = 'data/temp/{}'.format(project)
         temp_file = 'data/temp/{}/step_0.txt'.format(project)
         if not os.path.exists(temp_dir):
@@ -60,7 +62,7 @@ class ListFilter:
 
     def filter(self):
         for index, line_checker in enumerate(self._line_checkers):
-            print('applying filter {}: {}'.format(index, line_checker.method))
+            print('applying filter number {}: {}'.format(index, line_checker.method_name))
             self.apply_line_checker(index, line_checker)
 
     # hängt den aktuellen Eintrag an die Ausgabedatei an.
@@ -164,18 +166,51 @@ class ListFilter:
 
             # Die Anzahl der Treffer und Fehler auf der Kommandozeile ausgeben
             print('{} of {} matched the criteria "{}" in step {}'.format(number_appended_entries, total_number_entries,
-                                                              line_checker.method, step))
+                                                              line_checker.method_name, step))
             # Die Inputdatei schließen.
             input_file.close()
 
     def generateP2EFile(self, record_type):
-        output_dir = 'data/output/{}/'
         # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
         base_directory = output_dir.format(self._project)
-        if os.path.exists(base_directory):
+        if not os.path.exists(base_directory):
+            print('creating output directory ' + base_directory)
             os.mkdir(base_directory)
         # Der Name der Ausgabedatei
-        output_filename = 'p2e_' + self._project + '.txt'
+        output_filename = base_directory + '/p2e_' + self._project + '.txt'
+        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
+        # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
+        if os.path.exists(output_filename):
+            print('output file exists.')
+            os.remove(output_filename)
+        # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
+        # schließen.
+        with open(input_filename, 'r', encoding="utf8") as input_file:
+            # Lese die Zeilen in eine Liste.
+            lines = input_file.readlines()
+            sys_old = ''
+            for index, line in enumerate(lines):
+                sys_new = line[0:9]
+                if sys_new == sys_old:
+                    continue
+                else:
+                    with open(output_filename, 'a+', encoding="utf8") as output_file:
+                        output_file.writelines('EDU01' + sys_new + ',' + record_type + '\n')
+                        output_file.close()
+                    sys_old = sys_new
+
+    def generateFieldValueList(self, field, short):
+        output_dir = 'data/output/{}/'
+        if short:
+            line_checker = LineChecker(method_name='is_short_field', field=field)
+        else:
+            line_checker = LineChecker(method_name='is_field', field=field)
+        # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
+        base_directory = output_dir.format(self._project)
+        if not os.path.exists(base_directory):
+            os.mkdir(base_directory)
+        # Der Name der Ausgabedatei
+        output_filename = base_directory + 'p2e_' + self._project + '.txt'
         input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
         # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
         if os.path.exists(base_directory + output_filename):
@@ -187,9 +222,10 @@ class ListFilter:
             # Lese die Zeilen in eine Liste.
             lines = input_file.readlines()
             for index, line in enumerate(lines):
-                with open(output_filename, 'a+', encoding="utf8") as output_file:
-                    output_file.writelines('EDU01' + line[0:9] + ',' + record_type + '\n')
-                    output_file.close()
+                if line_checker.check(line):
+                    with open(output_filename, 'a+', encoding="utf8") as output_file:
+                        output_file.writelines(line_checker.get_value(line) + '\n')
+                        output_file.close()
 
     def add_line_checker(self, line_checker):
         self._line_checkers.append(line_checker)

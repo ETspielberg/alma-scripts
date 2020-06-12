@@ -13,8 +13,7 @@ def load_line_checker_list(project):
         file = chain_json['file']
         list_filter = ListFilter(project=project, filename=file)
         for line_checker in chain_json['lineCheckers']:
-            list_filter.add_line_checker(LineChecker(method=line_checker['method'], checklist=line_checker['checklist'],
+            list_filter.add_line_checker(LineChecker(method_name=line_checker['method_name'], checklist=line_checker['checklist'],
                                        field=line_checker['field'], position=line_checker['position'],
                                        mode=line_checker['mode']))
-            print(line_checker['method'])
     return list_filter

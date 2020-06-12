@@ -4,6 +4,10 @@ class LineChecker(object):
     def get_field(line):
         return line[11:15]
 
+    @staticmethod
+    def get_value(line):
+        return line[18:].strip()
+
     # Properties and setters to set the general values such as list to be checked against
     @property
     def checklist(self):
@@ -30,11 +34,11 @@ class LineChecker(object):
         self._position = position
 
     @property
-    def method(self):
+    def method_name(self):
         return self._method_name
 
-    @method.setter
-    def method(self, method_name):
+    @method_name.setter
+    def method_name(self, method_name):
         self._method_name = method_name
 
     @property
@@ -46,7 +50,7 @@ class LineChecker(object):
         self._mode = mode
 
     # initializes Line Checker
-    def __init__(self, method, checklist=None, field='001', position=1, mode="append"):
+    def __init__(self, method_name, checklist=None, field='001', position=1, mode="append"):
         """
         initializer for the LineChecker
         :param method: the method to be used for checking the line
@@ -54,8 +58,8 @@ class LineChecker(object):
         single string, a list of length 1 needs to be provided
         :param field: the field to be analyzed. Default is 001
         """
-        self._method_name = method
-        self._method = getattr(self, method, lambda: 0)
+        self._method_name = method_name
+        self._method = getattr(self, method_name, lambda: 0)
         self._field = field
         self._position = position
         self._mode = mode
@@ -74,7 +78,7 @@ class LineChecker(object):
         :return: True, if the field contents is a member of the the predefined list
         """
         if self.get_field(line) == self._field:
-            return line[18:].strip() in self._checklist
+            return self.get_field(line) in self._checklist
         return False
 
     def part_on_checklist(self, line):
@@ -98,7 +102,7 @@ class LineChecker(object):
         is_contained = False
         if self.get_field(line) == self._field:
             for check in self._checklist:
-                if check in line[18:]:
+                if check in self.get_value(line):
                     is_contained = True
         return is_contained
 
@@ -106,7 +110,7 @@ class LineChecker(object):
         is_contained = False
         if self.get_field(line)[:3] == self._field:
             for check in self._checklist:
-                if check in line[18:]:
+                if check in self.get_value(line):
                     is_contained = True
         return is_contained
 
@@ -117,7 +121,7 @@ class LineChecker(object):
         :return: True if the provided string is equal to the field content
         """
         if self.get_field(line) == self._field:
-            return self._checklist[0] == line[18:]
+            return self._checklist[0] == self.get_field(line)
         return False
 
     def starts_with(self, line):
