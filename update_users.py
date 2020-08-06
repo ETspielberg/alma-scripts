@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 from service.list_reader_service import load_identifier_list_of_type
@@ -6,8 +8,9 @@ from service.list_reader_service import load_identifier_list_of_type
 
 if __name__ == '__main__':
     users = load_identifier_list_of_type('users')
+    api_key = os.environ['ALMA_USER_API_KEY']
     for user in users:
-        url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/users/{}?accept=application/json&apikey=l8xx7fdf544bbefe415396184bc86d353025'.format(user)
+        url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/users/{}?accept=application/json&apikey={}'.format(user, api_key)
         get = requests.get(url=url, headers={'Accept': 'application/json'})
         get.encoding = 'utf-8'
         if get.status_code == 200:
