@@ -2,7 +2,7 @@ class LineChecker(object):
 
     @staticmethod
     def get_field(line):
-        return line[11:15]
+        return line[10:14]
 
     # Properties and setters to set the general values such as list to be checked against
     @property
@@ -132,8 +132,11 @@ class LineChecker(object):
 
     def char_at_position(self, line):
         is_contained = False
+
+        print(self.get_field(line) + '  ==  ' + self._field)
         if self.get_field(line) == self._field:
             for check in self._checklist:
+                print(check[0] + '  ==  ' + line[18 + self._position])
                 if check[0] == line[18 + self._position]:
                     is_contained = True
         return is_contained
