@@ -2,6 +2,8 @@ import requests
 
 from service.list_reader_service import load_identifier_list_of_type
 
+# Script that takes a list of Ids from the data/input folder and replaces the public record_type by staff ones
+
 if __name__ == '__main__':
     users = load_identifier_list_of_type('users')
     for user in users:

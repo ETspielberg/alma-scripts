@@ -6,14 +6,12 @@ from model.LineChecker import LineChecker
 from service.filter_chain_service import load_line_checker_list
 from service.list_reader_service import load_identifier_list_of_type
 
-if __name__ == '__main__':
 
 def add_sys_list_checker(list_filter):
     checklist = load_identifier_list_of_type('package')
     line_checker = LineChecker(method_name='has_title_sys_id', checklist=checklist, mode='remove')
     list_filter.add_line_checker(line_checker)
     return list_filter
-
 
 if __name__ == '__main__':
     project = 'ebooks_isbns_peterlang'
