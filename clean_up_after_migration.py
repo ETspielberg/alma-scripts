@@ -49,11 +49,11 @@ def update_vendors(type):
             update = requests.put(url=url, data=payload.encode('utf-8'), headers={'Content-Type': 'application/json'})
             update.encoding = 'utf-8'
             if update.status_code == 200:
-                print('succesfully updated vendor {}'.format(vendor_line))
+                logging.info('succesfully updated vendor {}'.format(vendor_line))
             else:
-                print('problem updating vendor {}:{}'.format(vendor_line, update.text))
+                logging.warning('problem updating vendor {}:{}'.format(vendor_line, update.text))
         else:
-            print(get.text)
+            logging.error(get.text)
 
 
 def deactivate_non_used_vendors(type):
@@ -77,17 +77,17 @@ def deactivate_non_used_vendors(type):
                         update = requests.put(url=url, data=payload.encode('utf-8'), headers={'Content-Type': 'application/json'})
                         update.encoding = 'utf-8'
                         if update.status_code == 200:
-                            print('succesfully updated vendor {}'.format(vendor_line))
+                            logging.info('succesfully updated vendor {}'.format(vendor_line))
                         else:
-                            print('problem updating vendor {}:{}'.format(vendor_line, update.text))
+                            logging.error('problem updating vendor {}:{}'.format(vendor_line, update.text))
                     else:
-                        print('account {} is already inactive'.format(vendor_line))
+                        logging.info('account {} is already inactive'.format(vendor_line))
                 else:
-                    print(get.text)
+                    logging.error(get.text)
             else:
-                print('account {} still has {} po-lines'.format(vendor_line, get_list.json()['total_record_count']))
+                logging.warning('account {} still has {} po-lines'.format(vendor_line, get_list.json()['total_record_count']))
         else:
-            print(get_list.text)
+            logging.error(get_list.text)
 
 def check_log(type):
     vendors = load_identifier_list_of_type('vendor_' + type)
