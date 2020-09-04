@@ -4,9 +4,8 @@ import os
 
 import requests
 
+# lädt die Funktion load_identifier_list_of_type aus der Datei service/list_reader_service.py
 from service.list_reader_service import load_identifier_list_of_type
-
-# Script that takes a list of Ids from the data/input folder and replaces the public record_type by staff ones
 
 # Basis-URL für die Alma API
 alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
@@ -118,22 +117,49 @@ def deactivate_non_used_vendors(type):
         # Die URL für die API zusammensetzen
         url = '{}acq/vendors/{}/po-lines?apikey={}'.format(alma_api_base_url,vendor_line, api_key)
 
-
+        # Die GET-Abfrage ausführen
         get_list = requests.get(url=url, headers={'Accept': 'application/json'})
+
+        # Die Kodierung der Antwort auf UTF-8 festlegen
         get_list.encoding = 'utf-8'
+
+        # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
         if get_list.status_code == 200:
+
+            # Die Antwort als Json auslesen, den Wert aus dem Feld 'total_record_count' auslesen und prüfen, ob dieser
+            # 0 ist (= keine Rechnungen am Lieferanten)
             if (get_list.json()['total_record_count'] == 0):
+
+                # Die URL für die API zusammensetzen
                 url = 'acq/vendors/{}?apikey={}'.format(alma_api_base_url, vendor_line, api_key)
+
+                # Die GET-Abfrage ausführen
                 get = requests.get(url=url, headers={'Accept': 'application/json'})
+
+                # Die Kodierung der Antwort auf UTF-8 festlegen
                 get.encoding = 'utf-8'
+
+                # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
                 if get.status_code == 200:
-                    info = get.json()
-                    if info['status']['value'] == 'ACTIVE':
+
+                    # Die Antwort als json auslesen, den Wert aus dem Feld 'status/value' auslesen und Prüfen, ob dieser
+                    # 'ACTIVE' ist (aktiver Lieferant)
+                    if get.json()['status']['value'] == 'ACTIVE':
+
+                        # den Inhalt der Antwort als Text auslesen
                         info = get.text
+
+                        # den Status-Wert "Active" durch "Inactive" ersetzen
                         payload = info.replace('"status":{"value":"ACTIVE","desc":"Active"}',
                                    '"status":{"value":"INACTIVE","desc":"Inactive"}')
+
+                        # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
                         update = requests.put(url=url, data=payload.encode('utf-8'), headers={'Content-Type': 'application/json'})
+
+                        # Die Kodierung der Antwort auf UTF-8 festlegen
                         update.encoding = 'utf-8'
+
+                        # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
                         if update.status_code == 200:
                             logging.info('succesfully updated vendor {}'.format(vendor_line))
                         else:
