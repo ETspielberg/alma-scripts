@@ -1,0 +1,62 @@
+{
+  "project": "p2e_zsn",
+  "file": "p2e_zsn_sort.lst",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "is_short_field",
+      "checklist": [""
+      ],
+      "field": "001",
+      "position": 1
+    },
+    {
+      "mode": "append",
+      "method_name": "is_field",
+      "checklist": [
+        ""
+      ],
+      "field": "025z",
+      "position": 1
+    },
+    {
+      "mode": "append",
+      "method_name": "char_at_position",
+      "checklist": [
+        "g",
+        "d"
+      ],
+      "field": "050 ",
+      "position": 8
+    },
+    {
+      "mode": "append",
+      "method_name": "char_at_position",
+      "checklist": [
+        "p",
+        "r",
+        "z"
+      ],
+      "field": "052 ",
+      "position": 1
+    },
+    {
+      "mode": "append",
+      "method_name": "is_short_field",
+      "checklist": [
+        ""
+      ],
+      "field": "078",
+      "position": 8
+    },
+    {
+      "mode": "append",
+      "method_name": "is_short_field",
+      "checklist": [
+        ""
+      ],
+      "field": "655",
+      "position": 8
+    }
+  ]
+}
