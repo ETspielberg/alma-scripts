@@ -13,7 +13,6 @@ def add_sys_list_checker(list_filter):
     list_filter.add_line_checker(line_checker)
     return list_filter
 
-
 if __name__ == '__main__':
     project = 'zsn'
     list_filter = load_line_checker_list(project=project)
