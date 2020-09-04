@@ -1,9 +1,12 @@
 import os
 import re
+import logging
 
 from model.LineChecker import LineChecker
 
 output_dir = 'data/output/{}'
+
+logging.basicConfig(filename='alma_scripts.log', level=logging.DEBUG)
 
 class ListFilter:
 
@@ -31,7 +34,7 @@ class ListFilter:
                     continue
                 else:
                     if entry_new_id in testset:
-                        print('reoccuring entry ID: ' + entry_new_id)
+                        logging.warning('reoccuring entry ID: ' + entry_new_id)
                         is_well_ordered = False
                         entry_id = entry_new_id
                     else:
@@ -44,10 +47,11 @@ class ListFilter:
         temp_dir = 'data/temp/{}'.format(project)
         temp_file = 'data/temp/{}/step_0.txt'.format(project)
         if not os.path.exists(temp_dir):
+            logging.debug('creating directory {}'.format(temp_dir))
             os.makedirs(temp_dir)
         if os.path.exists(temp_file):
             filelist = [f for f in os.listdir(temp_dir) if f.endswith(".txt")]
-            print('temp files exist.')
+            logging.info('temp files exist and are removed.')
             for file in filelist:
                 os.remove(os.path.join(temp_dir, file))
         with open('data/input/' + self._filename, 'r', encoding="utf8") as input_file:
@@ -62,7 +66,7 @@ class ListFilter:
 
     def filter(self):
         for index, line_checker in enumerate(self._line_checkers):
-            print('applying filter number {}: {}'.format(index, line_checker.method_name))
+            logging.info('applying filter number {}: {}'.format(index, line_checker.method_name))
             self.apply_line_checker(index, line_checker)
 
     # hängt den aktuellen Eintrag an die Ausgabedatei an.
@@ -107,6 +111,11 @@ class ListFilter:
 
             # Erste ID als Startpunkt für den Vergleich einlesen .
             entry_id = lines[0][0:9]
+
+            # im debug prüfen, ob die Grenzen für die Feldwerte und -inhalte korrekt gesetzt sind
+            logging.debug(entry_id)
+            logging.debug(line_checker.get_field(lines[0]))
+            logging.debug(line_checker.get_value(lines[0]))
 
             # Liste an zu schreibenden Zeilen pro Eintrag vorbereiten.
             entry = []
@@ -165,7 +174,7 @@ class ListFilter:
             total_number_entries += 1
 
             # Die Anzahl der Treffer und Fehler auf der Kommandozeile ausgeben
-            print('{} of {} matched the criteria "{}" in step {}'.format(number_appended_entries, total_number_entries,
+            logging.info('{} of {} matched the criteria "{}" in step {}'.format(number_appended_entries, total_number_entries,
                                                               line_checker.method_name, step))
             # Die Inputdatei schließen.
             input_file.close()
@@ -174,14 +183,14 @@ class ListFilter:
         # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
         base_directory = output_dir.format(self._project)
         if not os.path.exists(base_directory):
-            print('creating output directory ' + base_directory)
+            logging.info('creating output directory ' + base_directory)
             os.mkdir(base_directory)
         # Der Name der Ausgabedatei
         output_filename = base_directory + '/p2e_' + self._project + '.txt'
         input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
         # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
         if os.path.exists(output_filename):
-            print('output file exists.')
+            logging.info('output file exists.')
             os.remove(output_filename)
         # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
         # schließen.
@@ -214,7 +223,7 @@ class ListFilter:
         input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
         # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
         if os.path.exists(base_directory + output_filename):
-            print('output file exists.')
+            logging.info('output file exists.')
             os.remove(base_directory + output_filename)
         # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
         # schließen.

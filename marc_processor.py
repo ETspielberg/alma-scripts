@@ -15,11 +15,11 @@ def add_sys_list_checker(list_filter):
 
 
 if __name__ == '__main__':
-    project = 'ebooks_isbns_peterlang'
+    project = 'zsn'
     list_filter = load_line_checker_list(project=project)
-    # list_filter.clean_temp_folder()
+    list_filter.clean_temp_folder(project)
     # list_filter = add_sys_list_checker(list_filter)
-    # list_filter.filter()
-    # list_filter.generateP2EFile(record_type='portfolio')
-    list_filter.generateFieldValueList(field='001 ', short=False)
+    list_filter.filter()
+    list_filter.generateP2EFile(record_type='portfolio')
+    # list_filter.generateFieldValueList(field='001', short=False)
     print('finished')

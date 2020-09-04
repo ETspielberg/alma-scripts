@@ -6,7 +6,7 @@ from model.ListFilter import ListFilter
 
 def load_line_checker_list(project):
     """loads a project by the provided ID"""
-    path_to_file = 'data/chains/filter_chain_{}.json'.format(project)
+    path_to_file = 'chains/filter_chain_{}.json'.format(project)
     with open(path_to_file) as json_file:
         chain_json = json.load(json_file)
         json_file.close()
