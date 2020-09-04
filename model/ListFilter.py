@@ -6,7 +6,7 @@ from model.LineChecker import LineChecker
 
 output_dir = 'data/output/{}'
 
-logging.basicConfig(filename='alma_scripts.log', level=logging.DEBUG)
+logging.basicConfig(filename='data/output/list_filter.log', level=logging.DEBUG)
 
 class ListFilter:
 
@@ -19,8 +19,11 @@ class ListFilter:
             self._line_checkers = line_checkers
         self.test_ordering()
 
+    # überprüft, ob die Einträge in einer Datei zusammenhängend sind.
     def test_ordering(self):
+        # öffne die input-Datei
         with open('data/input/' + self._filename, 'r', encoding="utf8") as input_file:
+
             # Lese die Zeilen in eine Liste.
             lines = input_file.readlines()
             entry_id = lines[0][0:9]
@@ -43,6 +46,7 @@ class ListFilter:
                         continue
             return is_well_ordered
 
+    # Löscht temporäre Dateien eines vorherigen Laufes
     def clean_temp_folder(self, project):
         temp_dir = 'data/temp/{}'.format(project)
         temp_file = 'data/temp/{}/step_0.txt'.format(project)
@@ -64,6 +68,7 @@ class ListFilter:
                     output_file.writelines(line)
                     output_file.close()
 
+    # wendet nacheinander alle LineCheckers einer Filter-Kette an.
     def filter(self):
         for index, line_checker in enumerate(self._line_checkers):
             logging.info('applying filter number {}: {}'.format(index, line_checker.method_name))
