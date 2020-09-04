@@ -31,17 +31,6 @@
     },
     {
       "mode": "append",
-      "method_name": "char_at_position",
-      "checklist": [
-        "p",
-        "r",
-        "z"
-      ],
-      "field": "052 ",
-      "position": 1
-    },
-    {
-      "mode": "append",
       "method_name": "is_short_field",
       "checklist": [
         ""
