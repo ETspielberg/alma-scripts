@@ -213,6 +213,40 @@ class ListFilter:
                         output_file.close()
                     sys_old = sys_new
 
+    def generateMarksFile(self):
+        # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
+        base_directory = output_dir.format(self._project)
+        if not os.path.exists(base_directory):
+            logging.info('creating output directory ' + base_directory)
+            os.mkdir(base_directory)
+        print(base_directory)
+        # Der Name der Ausgabedatei
+        output_filename = base_directory + '/marks_' + self._project + '.txt'
+        print(output_filename)
+        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
+        # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
+        line_checker = LineChecker(method_name='contains', field='078e')
+        if os.path.exists(output_filename):
+            logging.info('output file exists.')
+            os.remove(output_filename)
+        # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
+        # schließen.
+        with open(input_filename, 'r', encoding="utf8") as input_file:
+            # Lese die Zeilen in eine Liste.
+            lines = input_file.readlines()
+            sys_old = ''
+            for index, line in enumerate(lines):
+                sys_new = line[0:9]
+                if sys_new == sys_old:
+                    if line_checker.check(line):
+                        print('writing line')
+                        with open(output_filename, 'a+', encoding="utf8") as output_file:
+                            output_file.writelines(line_checker.get_value(line) + '\n')
+                            output_file.close()
+                    continue
+                else:
+                    sys_old = sys_new
+
     def generateFieldValueList(self, field, short):
         output_dir = 'data/output/{}/'
         if short:

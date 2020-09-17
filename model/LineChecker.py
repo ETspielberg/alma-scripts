@@ -2,7 +2,7 @@ class LineChecker(object):
 
     @staticmethod
     def get_field(line):
-        return line[10:14]
+        return line[11:15]
 
     @staticmethod
     def get_value(line):
