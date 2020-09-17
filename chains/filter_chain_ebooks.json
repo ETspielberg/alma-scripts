@@ -1,0 +1,15 @@
+{
+  "project": "p2e_ebooks",
+  "file": "p2e_ebooks_sort.lst",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "char_at_position",
+      "checklist": [
+        "g"
+      ],
+      "field": "050 ",
+      "position": 8
+    }
+  ]
+}
