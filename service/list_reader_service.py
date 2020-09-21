@@ -20,6 +20,17 @@ def save_identifier_list(provider, isbns):
         list_file.close()
 
 
+def save_identifier_list_of_type(provider, identifier, list_type):
+    path_folder = 'data/output/{}'.format(provider)
+    if not os.path.exists(path_folder):
+        os.makedirs(path_folder)
+    path_to_file = path_folder + '/{}_list.txt'.format(list_type)
+    with open(path_to_file, 'w') as list_file:
+        for isbn in identifier:
+            list_file.write(isbn + '\n')
+        list_file.close()
+
+
 def load_identifier_list_of_type(identifier_type):
     path_to_file = os.getcwd() + '/data/input/' + identifier_type + '_list.txt'
     with open(path_to_file) as f:
