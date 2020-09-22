@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import xml.etree.ElementTree as etree
+from urllib import parse
 
 import requests
 
@@ -13,13 +15,16 @@ scope = 'MyInstitution'
 lang = 'eng'
 sort = 'rank'
 pcAvailability = 'true'
-inst = '49HBZ_UDE'
+institution_code = '49HBZ_UDE'
+alma_domain_name = 'hbz-ubdue'
 getMore = '0'
 skipDelivery = 'false'
 conVoc = 'true'
 disableSplitFacets = 'true'
 base_parameter = 'vid={}&tab={}&scope={}&lang={}&sort={}&pcAvailability={}&getMore={}&conVoc={}&inst={}&skipDelivery={}&disableSplitFacets={}' \
-    .format(vid, tab, scope, lang, sort, pcAvailability, getMore, conVoc, inst, skipDelivery, disableSplitFacets)
+    .format(vid, tab, scope, lang, sort, pcAvailability, getMore, conVoc, institution_code, skipDelivery, disableSplitFacets)
+
+sru_alma_search_url = 'https://{}.alma.exlibrisgroup.com/view/sru/{}?version=1.2&operation=searchRetrieve&recordSchema=marcxml&maximumRecords={}&startRecord={}&query={}'
 
 alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
 
@@ -37,14 +42,14 @@ def collect_number_of_entries(project):
     new_table_rows = []
 
     for index, row in table.iterrows():
-        logging.info('processing mark {}'.format(row['Kennzeichen']))
-        query = 'lds03%2Ccontains%2C{}'.format(row['Kennzeichen'])
+        logging.info('processing mark {} of {}: {}'.format(str(index), str(len(table)), row['Kennzeichen']))
+        query = 'alma.local_field_912={}'.format(parse.quote('"' + row['Kennzeichen']) + '"')
         logging.debug('running query: {}'.format(query))
         offset = 0
         limit = 1
         # Die URL für die API zusammensetzen
-        url = '{}v1/search?{}&q={}&offset={}&limit={}&apikey={}' \
-            .format(primo_api_base_url, base_parameter, query, offset, limit, primo_api_key)
+        url = sru_alma_search_url.format(alma_domain_name, institution_code, limit, offset, query)
+
         logging.debug('querying url {}'.format(url))
 
         # Die GET-Abfrage ausführen
@@ -55,10 +60,11 @@ def collect_number_of_entries(project):
 
         # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
         if get_list.status_code == 200:
+            content = etree.fromstring(get_list.content)
             # Gesamtzahl der gefundenen Einträge abrufen
             try:
-                total_number_of_results = get_list.json()['info']['total']
-            except KeyError:
+                total_number_of_results = int(content.find('{http://www.loc.gov/zing/srw/}numberOfRecords').text)
+            except AttributeError:
                 logging.error('error message received')
                 total_number_of_results = 0
         else:
@@ -333,9 +339,9 @@ if __name__ == '__main__':
     table = collect_number_of_entries(project)
 
     # die MMS-IDs hinzuschreiben
-    # table = collect_mms_ids(project, table)
+    table = collect_mms_ids(project, table)
 
     # Die Collection-IDs der e-Kollektionen heraussammeln
-    # table = retrieve_collection_ids(project, table)
+    table = retrieve_collection_ids(project, table)
 
     # table = update_collections(table)
