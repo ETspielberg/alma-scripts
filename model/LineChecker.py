@@ -1,12 +1,18 @@
+import logging
+
+from model.Format import Format
+
+
 class LineChecker(object):
 
-    @staticmethod
-    def get_field(line):
-        return line[11:15]
+    def get_field(self, line):
+        return line[self._format.field_start:self._format.field_end]
 
-    @staticmethod
-    def get_value(line):
-        return line[18:].strip()
+    def get_value(self, line):
+        return line[self._format.value_start:].strip()
+
+    def get_id(self, line):
+        return line[0:self._format.end_id]
 
     # Properties and setters to set the general values such as list to be checked against
     @property
@@ -46,14 +52,22 @@ class LineChecker(object):
         return self._mode
 
     @mode.setter
-    def method(self, mode):
+    def mode(self, mode):
         self._mode = mode
 
+    @property
+    def format(self):
+        return self._format
+
+    @format.setter
+    def format(self, format):
+        self._format = format
+
     # initializes Line Checker
-    def __init__(self, method_name, checklist=None, field='001', position=1, mode="append"):
+    def __init__(self, method_name, checklist=None, field='001', position=1, mode="append", format=''):
         """
         initializer for the LineChecker
-        :param method: the method to be used for checking the line
+        :param method_name: the method to be used for checking the line
         :param checklist: a list of Strings to be used for checking the line. If the line is to be chacked against a
         single string, a list of length 1 needs to be provided
         :param field: the field to be analyzed. Default is 001
@@ -67,6 +81,7 @@ class LineChecker(object):
             self._checklist = [""]
         else:
             self._checklist = checklist
+        self._format = Format(format)
 
     def check(self, line):
         return self._method(line=line)
@@ -129,19 +144,16 @@ class LineChecker(object):
             test_string = self._checklist[0]
             number_of_chars = len(test_string)
             if number_of_chars == 1:
-                return self._checklist[0] == line[18]
+                return self._checklist[0] == line[self._format.value_start]
             else:
-                return self._checklist[0] == line[18:(18 + number_of_chars)]
+                return self._checklist[0] == line[self._format.value_start:(self._format.value_start + number_of_chars)]
         return False
 
     def char_at_position(self, line):
         is_contained = False
-
-        print(self.get_field(line) + '  ==  ' + self._field)
         if self.get_field(line) == self._field:
             for check in self._checklist:
-                print(check[0] + '  ==  ' + line[18 + self._position])
-                if check[0] == line[18 + self._position]:
+                if check[0] == line[self._format.value_start + self._position]:
                     is_contained = True
         return is_contained
 
@@ -152,4 +164,9 @@ class LineChecker(object):
         return self.get_field(line)[:3] == self._field
 
     def has_title_sys_id(self, line):
-        return line[0:9] in self._checklist
+        return line[0:self._format.end_id] in self._checklist
+
+    def test_field_values(self, line):
+        logging.info('id = {}'.format(self.get_id(line)))
+        logging.info('field = {}'.format(self.get_field(line)))
+        logging.info('value = {}'.format(self.get_value(line)))

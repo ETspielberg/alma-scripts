@@ -8,6 +8,7 @@ output_dir = 'data/output/{}'
 
 logging.basicConfig(filename='data/output/list_filter.log', level=logging.DEBUG)
 
+
 class ListFilter:
 
     def __init__(self, project, filename, line_checkers=None):
@@ -79,6 +80,7 @@ class ListFilter:
         """
         writes one entry to the output file
         :param entry: the entry to be written
+        :param step: the sequence number of the step
         """
         output_file = 'data/temp/{}/step_{}.txt'.format(self._project, step+1)
         # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
@@ -94,6 +96,8 @@ class ListFilter:
         the result of the LineChecker check.
         :param entry: the list of lines building one entry
         :param is_condition_fulfilled: the result of the LineChecker check
+        :param append_type: whether appending or removing entries that fit the given condition
+        :param step: the sequence number of the step
         """
         if is_condition_fulfilled and append_type == 'append':
             self.append_to_file(entry, step)
@@ -106,6 +110,8 @@ class ListFilter:
     def apply_line_checker(self, step, line_checker):
         """
         does the magic and prepares the output lists from an input
+        :param step: the sequence number of the step
+        :param line_checker: the line checker to be applied
         """
         input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, step)
         # Öffnet die Eingabedatei im Lesen-Modus.
@@ -152,7 +158,10 @@ class ListFilter:
                     # Falls die ID nicht mit der voherigen Zeile übereinstimmt, beginnt ein neuer Eintrag.
                     # Je nach Bedingungen des append_type ('append' oder 'remove') und dem Ergebnis des LineCheckers
                     # wird der Eintrag der Ausgabedatei angehängt.
-                    number_appended_entries += self.append_entry_if_necessary(entry, is_condition_fulfilled, line_checker.mode, step)
+                    number_appended_entries += self.append_entry_if_necessary(entry,
+                                                                              is_condition_fulfilled,
+                                                                              line_checker.mode,
+                                                                              step)
 
                     # Die Gesamtzahl der Einträge wird um eins erhöht.
                     total_number_entries += 1
@@ -173,18 +182,27 @@ class ListFilter:
                         is_condition_fulfilled = True
 
             # Auch den letzten Eintrag der Ausgabedatei anhängen, wenn die Bedingugnen erfüllt sind.
-            number_appended_entries += self.append_entry_if_necessary(entry, is_condition_fulfilled, line_checker.mode, step)
+            number_appended_entries += self.append_entry_if_necessary(entry,
+                                                                      is_condition_fulfilled,
+                                                                      line_checker.mode,
+                                                                      step)
 
             # Die Gesamtzahl der Einträge wird um eins erhöht.
             total_number_entries += 1
 
             # Die Anzahl der Treffer und Fehler auf der Kommandozeile ausgeben
-            logging.info('{} of {} matched the criteria "{}" in step {}'.format(number_appended_entries, total_number_entries,
-                                                              line_checker.method_name, step))
+            logging.info('{} of {} matched the criteria "{}" in step {}'.format(number_appended_entries,
+                                                                                total_number_entries,
+                                                                                line_checker.method_name,
+                                                                                step))
             # Die Inputdatei schließen.
             input_file.close()
 
-    def generateP2EFile(self, record_type):
+    def generate_p2e_file(self, record_type):
+        """
+        takes the last temporary file and creates a p2e file of the given type
+        :param record_type: the type of the record (Portfolio, Package, or DB)
+        """
         # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
         base_directory = output_dir.format(self._project)
         if not os.path.exists(base_directory):
@@ -213,42 +231,12 @@ class ListFilter:
                         output_file.close()
                     sys_old = sys_new
 
-    def generateMarksFile(self):
-        # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
-        base_directory = output_dir.format(self._project)
-        if not os.path.exists(base_directory):
-            logging.info('creating output directory ' + base_directory)
-            os.mkdir(base_directory)
-        print(base_directory)
-        # Der Name der Ausgabedatei
-        output_filename = base_directory + '/marks_' + self._project + '.txt'
-        print(output_filename)
-        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
-        # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
-        line_checker = LineChecker(method_name='contains', field='078e')
-        if os.path.exists(output_filename):
-            logging.info('output file exists.')
-            os.remove(output_filename)
-        # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
-        # schließen.
-        with open(input_filename, 'r', encoding="utf8") as input_file:
-            # Lese die Zeilen in eine Liste.
-            lines = input_file.readlines()
-            sys_old = ''
-            for index, line in enumerate(lines):
-                sys_new = line[0:9]
-                if sys_new == sys_old:
-                    if line_checker.check(line):
-                        print('writing line')
-                        with open(output_filename, 'a+', encoding="utf8") as output_file:
-                            output_file.writelines(line_checker.get_value(line) + '\n')
-                            output_file.close()
-                    continue
-                else:
-                    sys_old = sys_new
-
-    def generateFieldValueList(self, field, short):
-        output_dir = 'data/output/{}/'
+    def generate_field_value_list(self, field, short):
+        """
+        creates a list of field values from the refined records
+        :param field: the field to be extracted
+        :param short: whether to use only the short field (three characters) or the long field (four characters)
+        """
         if short:
             line_checker = LineChecker(method_name='is_short_field', field=field)
         else:
@@ -258,12 +246,12 @@ class ListFilter:
         if not os.path.exists(base_directory):
             os.mkdir(base_directory)
         # Der Name der Ausgabedatei
-        output_filename = base_directory + 'p2e_' + self._project + '.txt'
+        output_filename = '{}/field_{}_{}_list.txt'.format(base_directory, field, self._project)
         input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
         # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
-        if os.path.exists(base_directory + output_filename):
+        if os.path.exists(output_filename):
             logging.info('output file exists.')
-            os.remove(base_directory + output_filename)
+            os.remove(output_filename)
         # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
         # schließen.
         with open(input_filename, 'r', encoding="utf8") as input_file:
@@ -277,3 +265,45 @@ class ListFilter:
 
     def add_line_checker(self, line_checker):
         self._line_checkers.append(line_checker)
+
+    def split_urls(self):
+        # Verzeichnis, wo die eingabedatei liegt
+        base_directory = output_dir.format(self._project)
+        line_checker = self._line_checkers[0]
+        if not os.path.exists(base_directory):
+            os.mkdir(base_directory)
+        # Der Name der Ausgabedatei
+        output_filename = '{}/{}'.format(base_directory, 'out_' + self._filename)
+        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers)-1)
+        # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
+        if os.path.exists(output_filename):
+            logging.info('output file exists.')
+            os.remove(output_filename)
+        # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
+        # schließen.
+        with open(input_filename, 'r', encoding="utf8") as input_file:
+            with open(output_filename, 'a+', encoding="utf8") as output_file:
+                # Lese die Zeilen in eine Liste.
+                lines = input_file.readlines()
+                for index, line in enumerate(lines):
+                    if line_checker.check(line):
+                        urls = line_checker.get_value(line).split('$$u')
+                        for url in urls:
+                            if url == '':
+                                continue
+                            output_file.writelines('{}$$u{}\n'.format(line[0:line_checker.format.value_start+1], url))
+                    else:
+                        output_file.writelines(line)
+                output_file.close()
+            input_file.close()
+
+    def test_field_values(self):
+        for index, line_checker in enumerate(self._line_checkers):
+            logging.info('applying filter number {}: {}'.format(index, line_checker.method_name))
+            self.apply_line_checker(index, line_checker)
+            input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, 0)
+            # Öffnet die Eingabedatei im Lesen-Modus.
+            with open(input_filename, 'r', encoding="utf8") as input_file:
+                # Lese die Zeilen in eine Liste.
+                lines = input_file.readlines()
+                line_checker.test_field_values(lines[4])
