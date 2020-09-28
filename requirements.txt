@@ -40,3 +40,7 @@ win_inet_pton=1.1.0=py37_0
 wincertstore=0.2=py37_0
 xlrd=1.2.0=py37_0
 zlib=1.2.11=h62dcd97_4
+
+pandas~=1.0.3
+requests~=2.23.0
+numpy~=1.18.1
