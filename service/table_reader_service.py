@@ -13,6 +13,16 @@ def read_table(project):
     return table
 
 
+def reload_table(project, index=0, temp=False):
+    if temp:
+        input_folder = temp_base_folder.format(project)
+    else:
+        input_folder = output_base_folder.format(project)
+    input_file = input_folder + '/output_step_{}.xlsx'.format(index)
+    table = pd.read_excel(input_file, dtype={'Kennung': object, 'Paket_MMS': object, 'Portfolio_MMS': object})
+    return table
+
+
 def write_table(project, rows, index=0, temp=False):
     if temp:
         output_folder = temp_base_folder.format(project)
