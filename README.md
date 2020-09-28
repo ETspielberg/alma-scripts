@@ -10,6 +10,7 @@ The following packages need to be provided:
 * requests
 * requests_cache
 * lxml
+* xlrd (for reading Excel tables)
 
 ## Input folder:
 Input files are to be located in a folder data/input relative to the script file.
