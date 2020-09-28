@@ -6,8 +6,10 @@ from urllib import parse
 
 import requests
 
+from service import table_reader_service
 from service.table_reader_service import read_table, write_table
 
+# basic url parameters for the Primo VE API
 primo_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/primo/'
 vid = '49HBZ_UDE:49HBZ_UDE_default_view'
 tab = 'LibraryCatalog'
@@ -21,11 +23,15 @@ getMore = '0'
 skipDelivery = 'false'
 conVoc = 'true'
 disableSplitFacets = 'true'
+
+# generate general parameters string (missing API-key, limit, offset and query)
 base_parameter = 'vid={}&tab={}&scope={}&lang={}&sort={}&pcAvailability={}&getMore={}&conVoc={}&inst={}&skipDelivery={}&disableSplitFacets={}' \
     .format(vid, tab, scope, lang, sort, pcAvailability, getMore, conVoc, institution_code, skipDelivery, disableSplitFacets)
 
+# base ALMA SRU search API url
 sru_alma_search_url = 'https://{}.alma.exlibrisgroup.com/view/sru/{}?version=1.2&operation=searchRetrieve&recordSchema=marcxml&maximumRecords={}&startRecord={}&query={}'
 
+# base ALMA API url
 alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
 
 # API-Key aus den Umgebungsvariablen lesen
@@ -34,19 +40,31 @@ alma_api_key = os.environ['ALMA_SCRIPT_API_KEY']
 
 
 def collect_number_of_entries(project):
+    """
+    collects the number of titles found in Alma for the collection marks provided in an excel spreadsheet
+    :param project: the name of the project (<project>.xlsx) with a list of collection marks in column 'Kennzeichen'.
+    :return: a dataframe with a second column 'total_in_Alma' containing the number of hits
+    """
     logging.info('project {}: starting collection of total number of entries'.format(project))
+
     # Excel-Tabelle mit Abrufkennzeichen einlesen
     table = read_table(project)
 
     # Neue Tabelle vorbereiten
     new_table_rows = []
 
+    # Durch alle Einträge durchgehen
     for index, row in table.iterrows():
         logging.info('processing mark {} of {}: {}'.format(str(index), str(len(table)), row['Kennzeichen']))
+
+        # SRU-Such-String vorbereiten mit den Selektionskennzeichen aus der Spalte 'Kennzeichen'
         query = 'alma.local_field_912={}'.format(parse.quote('"' + row['Kennzeichen']) + '"')
         logging.debug('running query: {}'.format(query))
+
+        # Die Paramter für eine Suche vorbereiten, um die Anzahld er Treffer auszulesen.
         offset = 0
         limit = 1
+
         # Die URL für die API zusammensetzen
         url = sru_alma_search_url.format(alma_domain_name, institution_code, limit, offset, query)
 
@@ -60,18 +78,25 @@ def collect_number_of_entries(project):
 
         # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
         if get_list.status_code == 200:
+
+            # Antwort als XML auslesen
             content = etree.fromstring(get_list.content)
+
             # Gesamtzahl der gefundenen Einträge abrufen
             try:
                 total_number_of_results = int(content.find('{http://www.loc.gov/zing/srw/}numberOfRecords').text)
             except AttributeError:
-                logging.error('error message received')
+                logging.error('no SRU response for entry {}'.format(row['Kennzeichen']))
                 total_number_of_results = 0
         else:
             total_number_of_results = 0
             logging.error(get_list.text)
+
+        # Wert in neue Spalte 'total_in_Alma' einfügen
         row['total_in_Alma'] = total_number_of_results
         new_table_rows.append(row)
+
+    # erweiterte Tabelle speichen und zurückgeben
     return write_table(project, new_table_rows)
 
 
@@ -126,16 +151,22 @@ def collect_mms_ids(project, table):
         row['Portfolio_MMS'] = list_to_string(portfolios)
         new_table_rows.append(row)
 
+    # erweiterte Tabelle speichen und zurückgeben
     return write_table(project, new_table_rows)
 
 
-def list_to_string(mms_list):
-    if len(mms_list) == 0:
+def list_to_string(id_list):
+    '''
+    writes a list of identifiers as semicolon separated list into a single string
+    :param id_list: a list of identifiers
+    :return: a string, with the identifiers separated by ';'
+    '''
+    if len(id_list) == 0:
         return ''
     else:
-        string = mms_list.pop()
-        while len(mms_list) > 0:
-            string = string + ';' + mms_list.pop()
+        string = id_list.pop()
+        while len(id_list) > 0:
+            string = string + ';' + id_list.pop()
         return string
 
 
@@ -173,6 +204,8 @@ def retrieve_collection_ids(project, table):
         collection_ids = list(dict.fromkeys(collection_ids))
         row['Collection_IDs'] = list_to_string(collection_ids)
         new_table_rows.append(row)
+
+    # erweiterte Tabelle speichen und zurückgeben
     return write_table(project, new_table_rows)
 
 
@@ -193,6 +226,8 @@ def update_collections(table):
                 service_ids = add_active_service(collection_id)
         row['Service_IDs'] = list_to_string(service_ids)
         new_table_rows.append(row)
+
+    # erweiterte Tabelle speichen und zurückgeben
     return write_table(project, new_table_rows)
 
 
@@ -272,6 +307,7 @@ def add_active_service(collection_id):
         logging.error('problems adding service full text to e-collection {}:{}'.format(collection_id, post_service.text))
         return ''
 
+
 def build_collections(table):
     # Alle Pakete durchgehen
     for index, row in table.iterrows():
@@ -323,8 +359,6 @@ def add_portfolios_to_collection(mms_id, service_id, collection_id):
         return False
 
 
-
-
 if __name__ == '__main__':
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
     project = 'marks'
@@ -335,13 +369,15 @@ if __name__ == '__main__':
     # den Logger konfigurieren (Dateinamen, Level)
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', filename=log_file, level=logging.INFO)
 
+    table = table_reader_service.reload_table(project, index=1)
+
     # die Gesamtzahl der Einträge abrufen
-    table = collect_number_of_entries(project)
+    # table = collect_number_of_entries(project)
 
     # die MMS-IDs hinzuschreiben
-    table = collect_mms_ids(project, table)
+    # table = collect_mms_ids(project, table)
 
     # Die Collection-IDs der e-Kollektionen heraussammeln
-    table = retrieve_collection_ids(project, table)
+    # table = retrieve_collection_ids(project, table)
 
     # table = update_collections(table)
