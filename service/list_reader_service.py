@@ -39,6 +39,7 @@ def load_identifier_list_of_type(identifier_type):
         # remove whitespace characters like `\n` at the end of each line
     return [x.strip() for x in isbns]
 
+
 def load_ids_from_file(path_to_file):
     with open(path_to_file) as f:
         ids = f.readlines()
