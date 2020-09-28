@@ -1,0 +1,16 @@
+{
+  "project": "vr_2",
+  "file": "vr_202009_2.mrc",
+  "format": "marc",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "is_field",
+      "checklist": [
+        ""
+      ],
+      "field": "85640",
+      "position": 8
+    }
+  ]
+}
