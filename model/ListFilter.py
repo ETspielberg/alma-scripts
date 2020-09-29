@@ -22,6 +22,10 @@ class ListFilter:
 
     # überprüft, ob die Einträge in einer Datei zusammenhängend sind.
     def test_ordering(self):
+        """
+        terst whether the ordering of the fields is ok. fields with one identifier are to be close together without other lines in between
+        :return: True, if the file is well ordered
+        """
         # öffne die input-Datei
         with open('data/input/' + self._filename, 'r', encoding="utf8") as input_file:
 
@@ -49,6 +53,11 @@ class ListFilter:
 
     # Löscht temporäre Dateien eines vorherigen Laufes
     def clean_temp_folder(self, project):
+        """
+        checks whether temporary and output folder exists and creates them if necessary. Also removes files from previous runs.
+        :param project:
+        :return:
+        """
         temp_dir = 'data/temp/{}'.format(project)
         temp_file = 'data/temp/{}/step_0.txt'.format(project)
         if not os.path.exists(temp_dir):
@@ -71,6 +80,10 @@ class ListFilter:
 
     # wendet nacheinander alle LineCheckers einer Filter-Kette an.
     def filter(self):
+        """
+        applies the list of filters to the provided text file
+        :return:
+        """
         for index, line_checker in enumerate(self._line_checkers):
             logging.info('applying filter number {}: {}'.format(index, line_checker.method_name))
             self.apply_line_checker(index, line_checker)
@@ -264,9 +277,17 @@ class ListFilter:
                         output_file.close()
 
     def add_line_checker(self, line_checker):
+        """
+        adds an additional line checker to the end of the list of line checkers
+        :param line_checker: the line checker to be added
+        """
         self._line_checkers.append(line_checker)
 
     def split_urls(self):
+        """
+        checks whether a given field contains several subfields (e.g. urls) exists and splits it into multiple fields
+        containing only one subfield
+        """
         # Verzeichnis, wo die eingabedatei liegt
         base_directory = output_dir.format(self._project)
         line_checker = self._line_checkers[0]
@@ -298,6 +319,10 @@ class ListFilter:
             input_file.close()
 
     def test_field_values(self):
+        """
+        just a test casse to check the validity of the applied format. Prints the identifier, the field and the value
+        to the log file.
+        """
         for index, line_checker in enumerate(self._line_checkers):
             logging.info('applying filter number {}: {}'.format(index, line_checker.method_name))
             self.apply_line_checker(index, line_checker)

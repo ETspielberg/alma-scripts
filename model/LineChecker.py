@@ -122,6 +122,11 @@ class LineChecker(object):
         return is_contained
 
     def short_contains(self, line):
+        """
+        checks whether the provided string contains the short version (3 letters) of a field
+        :param line: the line to be checked
+        :return: True, if the provided string is found within the field content
+        """
         is_contained = False
         if self.get_field(line)[:3] == self._field:
             for check in self._checklist:
@@ -140,6 +145,11 @@ class LineChecker(object):
         return False
 
     def starts_with(self, line):
+        """
+        checks whether the provided value of the provided line starts with a given letter
+        :param line: the line to be checked
+        :return: True if the provided string starts with the given letter
+        """
         if self.get_field(line) == self._field:
             test_string = self._checklist[0]
             number_of_chars = len(test_string)
@@ -150,6 +160,11 @@ class LineChecker(object):
         return False
 
     def char_at_position(self, line):
+        """
+        checks, whether the value at a given position of comprises one of the characters in the checklist
+        :param line: the line to be checked
+        :return: True if the provided string is equal to the field content
+        """
         is_contained = False
         if self.get_field(line) == self._field:
             for check in self._checklist:
@@ -158,15 +173,34 @@ class LineChecker(object):
         return is_contained
 
     def is_field(self, line):
+        """
+        checks, whether the line has the correct field
+        :param line: the line to be checked
+        :return: True if the provided string is equal to the field content
+        """
         return self.get_field(line) == self._field
 
     def is_short_field(self, line):
+        """
+        checks, whether the line has the correct short field (3 letters)
+        :param line: the line to be checked
+        :return: True if the provided string is equal to the field content
+        """
         return self.get_field(line)[:3] == self._field
 
     def has_title_sys_id(self, line):
+        """
+        checks whether a certain identifier is within the identifiers provided as checklist
+        :param line: the line to be checked
+        :return: True if the provided string has an id at the beginning
+        """
         return line[0:self._format.end_id] in self._checklist
 
     def test_field_values(self, line):
+        """
+        tests whether the format is correct
+        :param line: the line to be checked
+        """
         logging.info('id = {}'.format(self.get_id(line)))
         logging.info('field = {}'.format(self.get_field(line)))
         logging.info('value = {}'.format(self.get_value(line)))
