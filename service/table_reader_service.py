@@ -9,7 +9,11 @@ temp_base_folder = 'data/temp/{}'
 
 def read_table(project):
     path_to_file = input_folder.format(project)
-    table = pd.read_excel(path_to_file, dtype={'Kennung': object, 'Paket_MMS': object, 'Portfolio_MMS': object})
+    table = pd.read_excel(path_to_file, dtype={'Kennung': object,
+                                               'Paket_MMS': object,
+                                               'Portfolio_MMS': object,
+                                               'Collection_IDs': object,
+                                               'Code': object})
     return table
 
 
