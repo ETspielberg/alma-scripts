@@ -1,0 +1,31 @@
+{
+  "project": "p2e_zsn",
+  "file": "p2e_zsn_sort.lst",
+  "lineCheckers": [
+    {
+      "mode": "remove",
+      "method_name": "short_contains",
+      "checklist": ["www.bibliothek.uni-regensburg.de", "ezb.uni-regensburg.de", "rzblx1.uni-regensburg.de"],
+      "field": "655",
+      "position": 1
+    },
+    {
+      "mode": "append",
+      "method_name": "contains",
+      "checklist": [
+        "lzZDB"
+      ],
+      "field": "078z",
+      "position": 1
+    },
+    {
+      "mode": "remove",
+      "method_name": "char_at_position",
+      "checklist": [
+        "i"
+      ],
+      "field": "052",
+      "position": 0
+    }
+  ]
+}

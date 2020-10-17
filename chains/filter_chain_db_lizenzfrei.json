@@ -1,0 +1,15 @@
+{
+  "project": "p2e_db",
+  "file": "p2e_db_sort.lst",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "contains",
+      "checklist": [
+        "lzZDB"
+      ],
+      "field": "078z",
+      "position": 1
+    }
+  ]
+}
