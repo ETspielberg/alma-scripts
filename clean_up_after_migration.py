@@ -6,6 +6,7 @@ import time
 import requests
 
 # lädt die Funktion load_identifier_list_of_type aus der Datei service/list_reader_service.py
+from service.google_service import get_google_data
 from service.list_reader_service import load_identifier_list_of_type
 
 # Basis-URL für die Alma API
@@ -306,11 +307,78 @@ def fill_financial_code():
             logging.error(get.text)
 
 
+def update_partners():
+    # Datei mit den Lieferanten eines Typs laden
+    partners = load_identifier_list_of_type('partners')
+
+    # API-Key aus den Umgebungsvariablen lesen
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+
+    # alle Lieferanten durchgehen
+    for partner in partners:
+
+        # Die URL für die API zusammensetzen
+        url = '{}partners/{}?apikey={}'.format(alma_api_base_url, partner, api_key)
+
+        # Die GET-Abfrage ausführen
+        response = requests.get(url=url, headers={'Accept': 'application/json'})
+
+        # Die Kodierung der Antwort auf UTF-8 festlegen
+        response.encoding = 'utf-8'
+
+        # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+        if response.status_code == 200:
+
+            # Die Antwort als Json auslesen, den Wert aus dem Feld 'total_record_count' auslesen und prüfen, ob dieser
+            # 0 ist (= keine Rechnungen am Lieferanten)
+            partner_json = response.json()
+
+            iso_details = partner_json['partner_details']['profile_details']['iso_details']
+            iso_details['ill_server'] = 'zfl2-test.hbz-nrw.de'
+            iso_details['ill_port'] = '33242'
+            iso_symbol = iso_details['iso_symbol']
+            if 'DE-' not in iso_symbol:
+                iso_details['iso_symbol'] = 'DE-' + iso_symbol
+            partner_details = partner_json['partner_details']
+            partner_details['borrowing_supported'] = True
+            partner_details['lending_supported'] = True
+            partner_details['borrowing_workflow'] = 'DEFAULT_BOR_WF'
+            partner_details['lending_workflow'] = 'DEFAULT_LENDING_WF'
+
+            address_block = partner_json['contact_info']['address'][0]
+
+            google_data = get_google_data(address_block)
+            if google_data is not None:
+                for address_data in google_data['result']['address_components']:
+                    if 'country' in address_data['types']:
+                        if address_data['short_name'] == 'DE':
+                            partner_json['contact_info']['address'][0]['country'] = {"value": "DEU"}
+                    elif 'locality' in address_data['types']:
+                        partner_json['contact_info']['address'][0]['city'] = address_data['long_name']
+
+                # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
+            update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
+                                              headers={'Content-Type': 'application/json'})
+
+            # Die Kodierung der Antwort auf UTF-8 festlegen
+            update.encoding = 'utf-8'
+
+            # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+            if update.status_code == 200:
+                logging.info('succesfully updated partner {}'.format(partner))
+            else:
+                logging.error('problem updating partner {}:{}'.format(partner, update.text))
+        else:
+            logging.error(response.text)
+
+
+
+
 # Haupt-Startpunkt eines jeden Python-Programms.
 if __name__ == '__main__':
 
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    run_name = 'vendors_finance'
+    run_name = 'partners'
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(run_name)
@@ -326,5 +394,6 @@ if __name__ == '__main__':
     # deactivate_non_used_vendors(run_name)
     # check_log(run_name)
     # fill_financial_code()
-    set_liable_for_vat()
+    # set_liable_for_vat()
+    update_partners()
 
