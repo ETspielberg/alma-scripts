@@ -1,15 +1,16 @@
 {
   "project": "p2e_db",
-  "file": "p2e_db_sort.lst",
+  "file": "TL2_p2e_db_sort.lst",
+  "record_type": "db",
   "lineCheckers": [
     {
       "mode": "remove",
-      "method_name": "contains",
+      "method_name": "is_short_field",
       "checklist": [
-        "lzZDB"
+        ""
       ],
-      "field": "078z",
-      "position": 1
+      "field": "078",
+      "position": 8
     }
   ]
 }

@@ -1,42 +1,27 @@
 {
   "project": "p2e_zsn",
-  "file": "p2e_zsn_sort.lst",
+  "file": "TL2_p2e_zsn_sort.lst",
+  "record_type": "portfolio",
   "lineCheckers": [
     {
-      "mode": "append",
-      "method_name": "is_short_field",
-      "checklist": [""
+      "mode": "remove",
+      "method_name": "short_contains",
+      "checklist": [
+        "www.bibliothek.uni-regensburg.de",
+        "ezb.uni-regensburg.de",
+        "rzblx1.uni-regensburg.de"
       ],
-      "field": "001",
+      "field": "655",
       "position": 1
     },
     {
-      "mode": "append",
-      "method_name": "is_field",
+      "mode": "remove",
+      "method_name": "contains",
       "checklist": [
-        ""
+        "lzZDB"
       ],
-      "field": "025z",
+      "field": "078z",
       "position": 1
-    },
-    {
-      "mode": "append",
-      "method_name": "char_at_position",
-      "checklist": [
-        "g",
-        "d"
-      ],
-      "field": "050 ",
-      "position": 9
-    },
-    {
-      "mode": "append",
-      "method_name": "is_short_field",
-      "checklist": [
-        ""
-      ],
-      "field": "078",
-      "position": 8
     },
     {
       "mode": "append",

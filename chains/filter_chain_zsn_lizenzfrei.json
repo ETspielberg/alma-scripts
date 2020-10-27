@@ -1,6 +1,7 @@
 {
   "project": "p2e_zsn",
-  "file": "p2e_zsn_sort.lst",
+  "file": "TL2_p2e_zsn_sort.lst",
+  "record_type": "portfolio",
   "lineCheckers": [
     {
       "mode": "remove",

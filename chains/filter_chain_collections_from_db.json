@@ -1,0 +1,25 @@
+{
+  "project": "p2e_collection_from_db",
+  "file": "TL2_p2e_db_sort.lst",
+  "record_type": "collection",
+  "lineCheckers": [
+    {
+      "mode": "remove",
+      "method_name": "contains",
+      "checklist": [
+        "lzZDB"
+      ],
+      "field": "078z",
+      "position": 1
+    },
+    {
+      "mode": "append",
+      "method_name": "is_short_field",
+      "checklist": [
+        ""
+      ],
+      "field": "078",
+      "position": 8
+    }
+  ]
+}

@@ -1,15 +1,27 @@
 {
   "project": "p2e_ebooks",
-  "file": "p2e_ebooks_sort.lst",
+  "file": "TL2_p2e_ebooks_sort.lst",
+  "record_type": "portfolio",
   "lineCheckers": [
     {
-      "mode": "append",
-      "method_name": "char_at_position",
+      "mode": "remove",
+      "method_name": "short_contains",
       "checklist": [
-        "g"
+        "www.bibliothek.uni-regensburg.de",
+        "ezb.uni-regensburg.de",
+        "rzblx1.uni-regensburg.de"
       ],
-      "field": "050 ",
-      "position": 8
+      "field": "655",
+      "position": 1
+    },
+    {
+      "mode": "remove",
+      "method_name": "contains",
+      "checklist": [
+        "lzZDB"
+      ],
+      "field": "078z",
+      "position": 1
     }
   ]
 }
