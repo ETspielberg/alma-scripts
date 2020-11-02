@@ -11,6 +11,15 @@
       ],
       "field": "078",
       "position": 8
+    },
+    {
+      "mode": "remove",
+      "method_name": "char_at_position",
+      "checklist": [
+        "d"
+      ],
+      "field": "050 ",
+      "position": 9
     }
   ]
 }

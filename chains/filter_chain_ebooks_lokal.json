@@ -1,8 +1,8 @@
 {
-  "project": "url_extender",
-  "file": "scholars_schulpaeda_2020_2.mrc.mrc",
-  "format": "marc",
+  "project": "p2e_ebooks_lokal",
+  "file": "TL2_lokale_Titel.lst",
   "record_type": "portfolio",
+  "format": "aseq_L",
   "lineCheckers": [
     {
       "mode": "append",
@@ -10,8 +10,8 @@
       "checklist": [
         ""
       ],
-      "field": "85640",
-      "position": 8
+      "field": "001 ",
+      "position": 1
     }
   ]
 }

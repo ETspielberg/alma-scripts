@@ -1,0 +1,17 @@
+{
+  "project": "p2e_ebooks_lokal",
+  "file": "TL2_lokale_Titel.lst",
+  "record_type": "portfolio",
+  "format": "aseq_L",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "contains",
+      "checklist": [
+        "SIAM"
+      ],
+      "field": "078e",
+      "position": 1
+    }
+  ]
+}

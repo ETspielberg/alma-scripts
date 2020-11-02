@@ -1,0 +1,18 @@
+{
+  "project": "p2e_zsn_ezb",
+  "file": "TL2_p2e_zsn_sort.lst",
+  "record_type": "portfolio",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "short_contains",
+      "checklist": [
+        "www.bibliothek.uni-regensburg.de",
+        "ezb.uni-regensburg.de",
+        "rzblx1.uni-regensburg.de"
+      ],
+      "field": "655",
+      "position": 1
+    }
+  ]
+}

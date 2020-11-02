@@ -1,0 +1,17 @@
+{
+  "project": "test format",
+  "file": "test.lst",
+  "record_type": "test",
+  "format": "",
+  "lineCheckers": [
+    {
+      "mode": "remove",
+      "method_name": "test_field_values",
+      "checklist": [
+        ""
+      ],
+      "field": "078",
+      "position": 8
+    }
+  ]
+}
