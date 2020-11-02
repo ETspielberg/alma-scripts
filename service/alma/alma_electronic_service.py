@@ -38,6 +38,42 @@ def retrieve_service_ids(project, collection_ids):
     return list(dict.fromkeys(service_ids))
 
 
+def retrieve_services(collection_id):
+    url = '{}electronic/{}/e-collections/e-services?apikey={}'.format(alma_api_base_url, collection_id, alma_api_key)
+
+    # GET-Abfrage ausführen
+    get = requests.get(url=url, headers={'Accept': 'application/json'})
+
+    # Kodierung auf UTF-8 festsetzen
+    get.encoding = 'utf-8'
+
+    # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+    if get.status_code == 200:
+
+        # Den Inhalt der Antwort als Text auslesen
+        info = get.json()
+
+
+def get_collection(collection_id):
+    url = '{}electronics/e-collections/{}?apikey={}'.format(alma_api_base_url, collection_id, alma_api_key)
+    get_collection = requests.get(url=url, headers={'Accept': 'application/json'})
+    if get_collection.status_code == 200:
+        return get_collection.json()
+    else:
+        return None
+
+
+def get_stand_alone_portfolio(portfolio_id):
+    url = '{}electronics/e-collections/{}/e-services/{}/portfolios/{}?apikey={}'.format(alma_api_base_url, portfolio_id, portfolio_id, portfolio_id, alma_api_key)
+    get_portfolio = requests.get(url=url, headers={'Accept': 'application/json'})
+    if get_portfolio.status_code == 200:
+        return get_portfolio.json()
+    else:
+        return None
+
+
+# Den Inhalt der Antwort als Text auslesen
+
 def set_type_to_selective_package(project, collection_id):
     # Die URL für die API zusammensetzen
     url = '{}electronic/e-collections/{}?apikey={}'.format(alma_api_base_url, collection_id, alma_api_key)
@@ -83,7 +119,7 @@ def add_active_full_text_service(project, collection_id):
     # Der Service als Dictionary
     payload = {"is_local": True,
                "type": {
-                   "value": "getFullText",
+                   "value": "getFullTxt",
                    "desc": "Full Text"
                },
                "public_description": "",
@@ -111,7 +147,7 @@ def add_active_full_text_service(project, collection_id):
     if post_service.status_code == 200:
         logging.info(
             'project {}: successfully added service full text to e-collection {}'.format(project, collection_id))
-        return post_service.json()['id']
+        return post_service.json()
     else:
         logging.error(
             'project {}: problems adding service full text to e-collection {}:{}'.format(project, collection_id,

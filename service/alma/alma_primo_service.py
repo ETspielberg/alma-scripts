@@ -33,7 +33,7 @@ base_parameter = 'vid={}&tab={}&scope={}&lang={}&sort={}&pcAvailability={}&getMo
 
 
 def collect_portfolios_and_packages(project, field, search_term, number_of_hits):
-    query = '{}}%2Ccontains%2C{}'.format(field, search_term)
+    query = '{}%2Ccontains%2C{}'.format(field, search_term)
     logging.debug('running query: {}'.format(query))
 
     # Start-Werte für den offset und die Ergebnisanzahl pro Seite setzen
@@ -46,7 +46,7 @@ def collect_portfolios_and_packages(project, field, search_term, number_of_hits)
     packages = []
 
     # Alle Daten einsammeln
-    while len(portfolios) + len(packages) < number_of_hits:
+    while offset < number_of_hits:
         logging.info('project {}, entry {}: collected {} entries out of {}'.format(project, search_term, str(len(portfolios) + len(packages)), number_of_hits))
         # Die URL für die API zusammensetzen
         url = '{}v1/search?{}&q={}&offset={}&limit={}&apikey={}' \

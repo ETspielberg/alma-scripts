@@ -13,7 +13,7 @@ sru_alma_search_url = 'https://{}.alma.exlibrisgroup.com/view/sru/{}?version=1.2
 
 
 def get_number_of_hits(field, search_term, project):
-    query = 'alma.{}}={}'.format(field, parse.quote('"' + search_term + '"'))
+    query = 'alma.{}={}'.format(field, parse.quote('"' + search_term + '"'))
     logging.debug('running query: {}'.format(query))
 
     # Die Paramter für eine Suche vorbereiten, um die Anzahld er Treffer auszulesen.
@@ -26,7 +26,8 @@ def get_number_of_hits(field, search_term, project):
     logging.debug('querying url {}'.format(url))
 
     # Die GET-Abfrage ausführen
-    get_list = requests.get(url=url, encoding='utf-8')
+    get_list = requests.get(url=url)
+    get_list.encoding='utf-8'
 
     # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
     if get_list.status_code == 200:

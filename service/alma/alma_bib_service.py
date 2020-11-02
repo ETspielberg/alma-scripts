@@ -3,11 +3,13 @@ import os
 
 import requests
 
+from service.alma import alma_electronic_service
+
 alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
 alma_api_key = os.environ['ALMA_SCRIPT_API_KEY']
 
 
-def retrieve_collection_id_for_mms_id(project, mms_ids):
+def retrieve_collection_id_for_mms_id(project, mms_ids, library=None):
     collection_ids = []
 
     # Alle MMS-IDs durchgehen
@@ -32,14 +34,22 @@ def retrieve_collection_id_for_mms_id(project, mms_ids):
 
             try:
                 for collection in info['electronic_collection']:
-                    collection_ids.append(collection['id'])
+                    collection_id = collection['id']
+                    if library is None:
+                        collection_ids.append(collection_id)
+                    else:
+                        collection = alma_electronic_service.get_collection(collection_id=collection_id)
+                        try:
+                            if collection['library']['value'] == library:
+                                collection_ids.append(collection_id)
+                        except:
+                            logging.warning('project {}: could not retrieve collection {}'.format(project, collection_id))
             except KeyError:
                 logging.error('project {}: no collection found for mms_id {}'.format(project, mms_id))
-
     return list(dict.fromkeys(collection_ids))
 
 
-def retrieve_portfolio_ids(project, mms_ids):
+def retrieve_portfolio_ids(project, mms_ids, library=None):
     portfolio_ids = []
     # Alle MMS-IDs durchgehen
     for mms_id in mms_ids.split(';'):
@@ -62,9 +72,18 @@ def retrieve_portfolio_ids(project, mms_ids):
             info = get.json()
 
             try:
-                for collection in info['portfolio']:
-                    portfolio_ids.append(collection['id'])
+                for portfolio in info['portfolio']:
+                    portfolio_id = portfolio['id']
+                    if library is None:
+                        portfolio_ids.append(portfolio_id)
+                    else:
+                        portfolio_json = alma_electronic_service.get_stand_alone_portfolio(portfolio_id=portfolio_id)
+                        try:
+                            if portfolio_json['library']['value'] == library:
+                                portfolio_ids.append(portfolio_id)
+                        except:
+                            logging.error('project {}: could not retrieve portfolio {}'.format(project, portfolio_id))
             except KeyError:
                 logging.error('project {}: no portfolio found for mms_id {}'.format(project, mms_id))
 
-    collection_ids = list(dict.fromkeys(portfolio_ids))
+    return list(dict.fromkeys(portfolio_ids))
