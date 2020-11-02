@@ -12,11 +12,14 @@ def add_sys_list_checker(list_filter):
     return list_filter
 
 
-# Hauptstartpunkt. Python startet anhand dieser Zeilen das Skript. Muss am Ende stehen.
-if __name__ == '__main__':
-    # Projektnamen angeben. Dieser gibt an, welche Filter-Kette geladen wird (filter_chain_<project>.json)
-    project = 'zsn'
+def add_id_checker(list_filter):
+    checklist = load_identifier_list_of_type('exclude_TAs')
+    line_checker = LineChecker(method_name='contains', checklist=checklist, mode='remove', field='001 ', format='')
+    list_filter.add_line_checker(line_checker)
+    return list_filter
 
+
+def run_project(project):
     # den Namen der Logdatei festlegen
     log_file = 'data/output/marc_processor_{}.log'.format(project)
 
@@ -32,17 +35,29 @@ if __name__ == '__main__':
     list_filter = load_line_checker_list(project=project)
 
     # Löscht den Inhalt des temporären Ordners. Wenn dieser nicht existiert, wird er erzeugt.
-    # list_filter.clean_temp_folder(project)
+    list_filter.clean_temp_folder(project)
 
     # Fügt den Filter hinzu, der prüft, ob die Sys-ID auf einer Pakete Liste enthalten ist.
     list_filter = add_sys_list_checker(list_filter)
+    list_filter = add_id_checker(list_filter)
 
     # Filter anwenden
-    # list_filter.filter()
+    list_filter.filter()
+    return list_filter
 
-    # aus der letzten temporären Datei wird die P2E-Datei erzeugt.
-    list_filter.generate_p2e_file(record_type='portfolio')
 
-    # aus der letzten temporären Datei wird eine Liste der Feld-Werte erzeugt
-    list_filter.generate_field_value_list(field='078e', short=False)
+# Hauptstartpunkt. Python startet anhand dieser Zeilen das Skript. Muss am Ende stehen.
+if __name__ == '__main__':
+
+    # projects = ['db', 'zsn', 'ebooks', 'db_lizenzfrei', 'zsn_lizenzfrei', 'ebooks_lizenzfrei', 'collections_from_db']
+    projects = ['zsn_ezb']
+    for project in projects:
+        list_filter = run_project(project=project)
+
+        # aus der letzten temporären Datei wird die P2E-Datei erzeugt.
+        list_filter.generate_p2e_file()
+
+        # aus der letzten temporären Datei wird eine Liste der Feld-Werte erzeugt
+        list_filter.generate_field_value_list(field='001 ', short=False, format='')
+
     logging.info('finished')
