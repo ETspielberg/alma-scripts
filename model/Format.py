@@ -4,6 +4,10 @@ class Format(object):
     def end_id(self):
         return self._end_id
 
+    @property
+    def format(self):
+        return self._format
+
     @end_id.setter
     def end_id(self, end_id):
         self._end_id = end_id
@@ -42,10 +46,17 @@ class Format(object):
 
     # initializes Format
     def __init__(self, format=''):
+        self._format = format
         if format == 'marc':
             self._end_id = 9
             self._field_start = 10
             self._field_end = 15
+            self._indicator = 16
+            self._value_start = 18
+        elif format == 'aseq_L':
+            self._end_id = 9
+            self._field_start = 10
+            self._field_end = 14
             self._indicator = 16
             self._value_start = 18
         else:

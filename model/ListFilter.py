@@ -11,7 +11,7 @@ logging.basicConfig(filename='data/output/list_filter.log', level=logging.DEBUG)
 
 class ListFilter:
 
-    def __init__(self, project, filename, line_checkers=None):
+    def __init__(self, project, filename, line_checkers=None, record_type='portfolio'):
         self._filename = filename
         self._project = project
         if line_checkers is None:
@@ -19,6 +19,7 @@ class ListFilter:
         else:
             self._line_checkers = line_checkers
         self.test_ordering()
+        self._record_type = record_type
 
     # überprüft, ob die Einträge in einer Datei zusammenhängend sind.
     def test_ordering(self):
@@ -211,10 +212,9 @@ class ListFilter:
             # Die Inputdatei schließen.
             input_file.close()
 
-    def generate_p2e_file(self, record_type):
+    def generate_p2e_file(self):
         """
         takes the last temporary file and creates a p2e file of the given type
-        :param record_type: the type of the record (Portfolio, Package, or DB)
         """
         # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
         base_directory = output_dir.format(self._project)
@@ -240,20 +240,20 @@ class ListFilter:
                     continue
                 else:
                     with open(output_filename, 'a+', encoding="utf8") as output_file:
-                        output_file.writelines('EDU01' + sys_new + ',' + record_type + '\n')
+                        output_file.writelines('EDU01' + sys_new + ',' + self._record_type + '\n')
                         output_file.close()
                     sys_old = sys_new
 
-    def generate_field_value_list(self, field, short):
+    def generate_field_value_list(self, field, short, format=''):
         """
         creates a list of field values from the refined records
         :param field: the field to be extracted
         :param short: whether to use only the short field (three characters) or the long field (four characters)
         """
         if short:
-            line_checker = LineChecker(method_name='is_short_field', field=field)
+            line_checker = LineChecker(method_name='is_short_field', field=field, format=format)
         else:
-            line_checker = LineChecker(method_name='is_field', field=field)
+            line_checker = LineChecker(method_name='is_field', field=field, format=format)
         # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
         base_directory = output_dir.format(self._project)
         if not os.path.exists(base_directory):

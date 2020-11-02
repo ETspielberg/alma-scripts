@@ -201,6 +201,7 @@ class LineChecker(object):
         tests whether the format is correct
         :param line: the line to be checked
         """
-        logging.info('id = {}'.format(self.get_id(line)))
-        logging.info('field = {}'.format(self.get_field(line)))
-        logging.info('value = {}'.format(self.get_value(line)))
+        logging.info('format = {}'.format(self.format.format))
+        logging.info('id = "{}"'.format(self.get_id(line)))
+        logging.info('field = "{}"'.format(self.get_field(line)))
+        logging.info('value = "{}"'.format(self.get_value(line)))
