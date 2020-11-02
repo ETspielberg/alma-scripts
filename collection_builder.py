@@ -48,12 +48,19 @@ def collect_mms_ids(project, table):
     return write_table(project=project, rows=new_table_rows)
 
 
-def retrieve_collection_ids(project, table):
+def retrieve_collection_ids(project, table, library=None):
     new_table_rows = []
 
     # Alle Pakete durchgehen
     for index, row in table.iterrows():
-        collection_ids = alma_bib_service.retrieve_collection_id_for_mms_id(project=project, mms_ids=row['Paket_MMS'])
+        if library is None:
+            collection_ids = alma_bib_service.retrieve_collection_id_for_mms_id(project=project,
+                                                                                mms_ids=row['Paket_MMS'])
+        else:
+            collection_ids = alma_bib_service.retrieve_collection_id_for_mms_id(project=project,
+                                                                                mms_ids=row['Paket_MMS'],
+                                                                                library=library)
+
         row['Collection_IDs'] = list_to_string(collection_ids)
         new_table_rows.append(row)
 
@@ -61,12 +68,13 @@ def retrieve_collection_ids(project, table):
     return write_table(project=project, rows=new_table_rows)
 
 
-def retrieve_portfolio_ids(project, table):
+def retrieve_portfolio_ids(project, table, library=None):
     new_table_rows = []
 
     # Alle Pakete durchgehen
     for index, row in table.iterrows():
-        portfolio_ids = alma_bib_service.retrieve_portfolio_ids(project=project, mms_ids=row['Portfolio_MMS'])
+        portfolio_ids = alma_bib_service.retrieve_portfolio_ids(project=project, mms_ids=row['Portfolio_MMS'],
+                                                                library=library)
         row['Portfolio_IDs'] = list_to_string(portfolio_ids)
         new_table_rows.append(row)
 
@@ -74,7 +82,7 @@ def retrieve_portfolio_ids(project, table):
     return write_table(project=project, rows=new_table_rows)
 
 
-def retrieve_service_ids(project, table):
+def retrieve_service_ids(project, table, library=None):
     new_table_rows = []
 
     # Alle Pakete durchgehen
@@ -99,14 +107,18 @@ def update_collections(project, table):
 
             # Den Type auf selective package ändern
             success_type_change = alma_electronic_service.set_type_to_selective_package(project=project,
-                                                                                         collection_id=collection_id)
-
+                                                                                        collection_id=collection_id)
             # Falls die Änderung erfolgreich war, einen Full-Text-Service hinzufügen
             if success_type_change:
-                service_id = alma_electronic_service.add_active_full_text_service(project=project,
-                                                                                  collection_id=collection_id)
-                if service_id != '':
-                    service_ids.append(service_id)
+                service = None
+                service_all = alma_electronic_service.retrieve_services(collection_id=collection_id)
+                if service_all is not None:
+                    for service_individual in service_all:
+                        if service_individual['type']['value'] == 'getFullText':
+                            service = service_individual
+                if service_all is None:
+                    service = alma_electronic_service.add_active_full_text_service(project=project, collection_id=collection_id)
+                service_ids.append(service['id'])
         row['Service_IDs'] = list_to_string(service_ids)
         new_table_rows.append(row)
 
@@ -131,11 +143,13 @@ if __name__ == '__main__':
 
     new_run = False
 
+    electronic_library = 'E0001'
+
     if new_run:
         # Excel-Tabelle mit Abrufkennzeichen einlesen
         table = read_table(project=project)
     else:
-        table = table_reader_service.reload_table(project=project, index=0)
+        table = table_reader_service.reload_table(project=project, index=1)
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(project)
@@ -143,16 +157,18 @@ if __name__ == '__main__':
     # den Logger konfigurieren (Dateinamen, Level)
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', filename=log_file, level=logging.INFO)
 
+    logging.info('running new project {}'.format(project))
+
     # die Gesamtzahl der Einträge abrufen
-    table = collect_number_of_entries(project=project, table=table)
+    # table = collect_number_of_entries(project=project, table=table)
 
     # die MMS-IDs hinzuschreiben
     # table = collect_mms_ids(project=project, table=table)
 
     # Die Collection-IDs der e-Kollektionen heraussammeln
-    # table = retrieve_collection_ids(project=project, table=table)
+    table = retrieve_collection_ids(project=project, table=table, library=electronic_library)
 
-    # table = retrieve_portfolio_ids(project=project, table=table)
+    table = retrieve_portfolio_ids(project=project, table=table, library=electronic_library)
 
     # table = update_collections(project=project, table=table)
-    build_collections(project=project, table=table)
+    # build_collections(project=project, table=table)
