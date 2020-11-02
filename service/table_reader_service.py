@@ -1,8 +1,10 @@
+import logging
 import os
 
 import pandas as pd
 
 input_folder = 'data/input/{}.xlsx'
+input_folder_csv = 'data/input/{}.csv'
 output_base_folder = 'data/output/{}'
 temp_base_folder = 'data/temp/{}'
 
@@ -16,6 +18,16 @@ def read_table(project):
                                                'Code': object})
     return table
 
+def read_arrival_information_csv(project):
+    path_to_file = input_folder_csv.format(project)
+    columns = ['order_number', 'number_of_items', 'shipment_date', 'arrival_date', 'arrival_note']
+    table = pd.read_csv(path_to_file, sep=',', names=columns,  header=None,  dtype={'order_number': object,
+                                               'number_of_items': int,
+                                               'shipment_date': object,
+                                               'arrival_date': object,
+                                               'arrival_note': object})
+    logging.debug(table)
+    return table
 
 def reload_table(project, index=0, temp=False):
     if temp:
