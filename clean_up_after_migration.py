@@ -307,9 +307,9 @@ def fill_financial_code():
             logging.error(get.text)
 
 
-def update_partners():
+def update_partners(project):
     # Datei mit den Lieferanten eines Typs laden
-    partners = load_identifier_list_of_type('partners')
+    partners = load_identifier_list_of_type(project)
 
     # API-Key aus den Umgebungsvariablen lesen
     api_key = os.environ['ALMA_SCRIPT_API_KEY']
@@ -333,12 +333,15 @@ def update_partners():
             # 0 ist (= keine Rechnungen am Lieferanten)
             partner_json = response.json()
 
-            iso_details = partner_json['partner_details']['profile_details']['iso_details']
-            iso_details['ill_server'] = 'zfl2-test.hbz-nrw.de'
-            iso_details['ill_port'] = '33242'
-            iso_symbol = iso_details['iso_symbol']
-            if 'DE-' not in iso_symbol:
-                iso_details['iso_symbol'] = 'DE-' + iso_symbol
+            try:
+                iso_details = partner_json['partner_details']['profile_details']['iso_details']
+                iso_details['ill_server'] = 'zfl2-test.hbz-nrw.de'
+                iso_details['ill_port'] = '33242'
+                iso_symbol = iso_details['iso_symbol']
+                if 'DE-' not in iso_symbol:
+                    iso_details['iso_symbol'] = 'DE-' + iso_symbol
+            except KeyError:
+                logging.error('no iso details for partner {}'.format(partner))
             partner_details = partner_json['partner_details']
             partner_details['borrowing_supported'] = True
             partner_details['lending_supported'] = True
@@ -374,11 +377,12 @@ def update_partners():
 
 
 
+
 # Haupt-Startpunkt eines jeden Python-Programms.
 if __name__ == '__main__':
 
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    run_name = 'partners'
+    run_name = 'partners_umlaute'
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(run_name)
@@ -395,5 +399,5 @@ if __name__ == '__main__':
     # check_log(run_name)
     # fill_financial_code()
     # set_liable_for_vat()
-    update_partners()
+    update_partners(run_name)
 
