@@ -375,6 +375,104 @@ def update_partners(project):
             logging.error(response.text)
 
 
+def extend_partner_names():
+    # Datei mit den Lieferanten eines Typs laden
+    partners = load_identifier_list_of_type(project)
+
+    # API-Key aus den Umgebungsvariablen lesen
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+
+    # alle Lieferanten durchgehen
+    for partner in partners:
+        time.sleep(0.5)
+
+        # Die URL für die API zusammensetzen
+        url = '{}partners/{}?apikey={}'.format(alma_api_base_url, partner, api_key)
+        try:
+            # Die GET-Abfrage ausführen
+            response = requests.get(url=url, headers={'Accept': 'application/json'})
+
+            # Die Kodierung der Antwort auf UTF-8 festlegen
+            response.encoding = 'utf-8'
+
+            # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+            if response.status_code == 200:
+
+                # Die Antwort als Json auslesen, den Wert aus dem Feld 'total_record_count' auslesen und prüfen, ob dieser
+                # 0 ist (= keine Rechnungen am Lieferanten)
+                partner_json = response.json()
+
+                try:
+                    if partner_json['partner_details']['profile_details']['profile_type'] == 'SLNP':
+                        symbol = partner_json['partner_details']['profile_details']['iso_details']['iso_symbol']
+                        name = partner_json['partner_details']['name']
+                        partner_json['partner_details']['name'] = '{} ({})'.format(name, symbol)
+                        update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
+                                      headers={'Content-Type': 'application/json'})
+
+                        # Die Kodierung der Antwort auf UTF-8 festlegen
+                        update.encoding = 'utf-8'
+
+                        # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+                        if update.status_code == 200:
+                            logging.info('succesfully updated partner {}'.format(partner))
+                        else:
+                            logging.error('problem updating partner {}:{}'.format(partner, update.text))
+                    else:
+                        logging.warning(response.text)
+                except KeyError:
+                    logging.error('no iso details for partner {}'.format(partner))
+            else:
+                logging.warning(response.text)
+        except:
+            logging.error('error upon api connection: {}'.format(partner))
+
+
+def update_partners_resending_due_interval(project):
+    # Datei mit den Lieferanten eines Typs laden
+    partners = load_identifier_list_of_type(project)
+
+    # API-Key aus den Umgebungsvariablen lesen
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+
+    # alle Lieferanten durchgehen
+    for partner in partners:
+
+        # Die URL für die API zusammensetzen
+        url = '{}partners/{}?apikey={}'.format(alma_api_base_url, partner, api_key)
+
+        # Die GET-Abfrage ausführen
+        response = requests.get(url=url, headers={'Accept': 'application/json'})
+
+        # Die Kodierung der Antwort auf UTF-8 festlegen
+        response.encoding = 'utf-8'
+
+        # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+        if response.status_code == 200:
+
+            # Die Antwort als Json auslesen, den Wert aus dem Feld 'total_record_count' auslesen und prüfen, ob dieser
+            # 0 ist (= keine Rechnungen am Lieferanten)
+            partner_json = response.json()
+
+            try:
+                iso_details = partner_json['partner_details']['profile_details']['iso_details']
+                iso_details['resending_overdue_message_interval'] = 10
+            except KeyError:
+                logging.error('no iso details for partner {}'.format(partner))
+            update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
+                                              headers={'Content-Type': 'application/json'})
+
+            # Die Kodierung der Antwort auf UTF-8 festlegen
+            update.encoding = 'utf-8'
+
+            # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+            if update.status_code == 200:
+                logging.info('succesfully updated partner {}'.format(partner))
+            else:
+                logging.error('problem updating partner {}:{}'.format(partner, update.text))
+        else:
+            logging.error(response.text)
+
 
 
 
@@ -382,10 +480,10 @@ def update_partners(project):
 if __name__ == '__main__':
 
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    run_name = 'partners_umlaute'
+    project = 'partners'
 
     # den Namen der Logdatei festlegen
-    log_file = 'data/output/{}.log'.format(run_name)
+    log_file = 'data/output/{}.log'.format(project)
 
     # den Logger konfigurieren (Dateinamen, Level)
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', filename=log_file, level=logging.INFO)
@@ -399,5 +497,7 @@ if __name__ == '__main__':
     # check_log(run_name)
     # fill_financial_code()
     # set_liable_for_vat()
-    update_partners(run_name)
+    # update_partners(run_name)
+    # update_partners_resending_due_interval(project)
+    extend_partner_names()
 
