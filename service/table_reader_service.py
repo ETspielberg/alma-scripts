@@ -23,7 +23,12 @@ D_TYPES = {'Kennung': object,
            'OWN': object,
            'Feld 125b': object,
            'MMS-ID': object,
-           'Holding-ID': object
+           'Holding-ID': object,
+           'ADM+SEQ': object,
+           'Priorität': object,
+           'angelegt am': object,
+           'Barcode': object,
+           'Abholort': object
            }
 
 
@@ -69,3 +74,9 @@ def write_table(project, rows, index=0, temp=False):
     new_table = pd.DataFrame(rows)
     new_table.to_excel(output_file)
     return new_table
+
+
+def read_requests_table():
+    path_to_file = input_folder_csv.format('offene_vormerkungen')
+    table = pd.read_csv(path_to_file, dtype=D_TYPES, delimiter='|')
+    return table

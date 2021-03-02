@@ -10,6 +10,8 @@ from service.google_service import get_google_data
 from service.list_reader_service import load_identifier_list_of_type
 
 # Basis-URL für die Alma API
+from service.table_reader_service import read_requests_table
+
 alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
 
 
@@ -380,7 +382,8 @@ def extend_partner_names():
     partners = load_identifier_list_of_type(project)
 
     # API-Key aus den Umgebungsvariablen lesen
-    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+    # api_key = os.environ['ALMA_SCRIPT_API_KEY']
+    api_key = os.environ['ALMA_API_WUP']
 
     # alle Lieferanten durchgehen
     for partner in partners:
@@ -405,8 +408,13 @@ def extend_partner_names():
                 try:
                     if partner_json['partner_details']['profile_details']['profile_type'] == 'SLNP':
                         symbol = partner_json['partner_details']['profile_details']['iso_details']['iso_symbol']
+                        if 'DE-' in symbol:
+                            symbol = symbol.replace('DE-', '')
+                        symbol = 'DE-' + symbol.capitalize()
+                        partner_json['partner_details']['profile_details']['iso_details']['iso_symbol'] = symbol
                         name = partner_json['partner_details']['name']
-                        partner_json['partner_details']['name'] = '{} ({})'.format(name, symbol)
+                        if not name.startswith('DE-'):
+                            partner_json['partner_details']['name'] = '{} ({})'.format(symbol, name)
                         update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
                                       headers={'Content-Type': 'application/json'})
 
@@ -419,6 +427,7 @@ def extend_partner_names():
                         else:
                             logging.error('problem updating partner {}:{}'.format(partner, update.text))
                     else:
+                        logging.warning('could not update partner {}: no SLNP'.format(partner))
                         logging.warning(response.text)
                 except KeyError:
                     logging.error('no iso details for partner {}'.format(partner))
@@ -474,13 +483,63 @@ def update_partners_resending_due_interval(project):
             logging.error(response.text)
 
 
+def set_requests():
+    requests_table = read_requests_table()
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+
+    # alle Lieferanten durchgehen
+    for index, request in requests_table.iterrows():
+        time.sleep(0.5)
+        barcode = request['Barcode'].strip()
+        user_id = request['Benutzer_id'].strip()
+        try:
+            logging.debug('processing item with barcode {}'.format(barcode))
+            url = '{}items?item_barcode={}&apikey={}'.format(alma_api_base_url, barcode, api_key)
+            response = requests.get(url=url, headers={'Accept': 'application/json'})
+
+            date = request['angelegt am'].strip()
+            # Die Kodierung der Antwort auf UTF-8 festlegen
+            response.encoding = 'utf-8'
+
+            # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+            if response.status_code == 200:
+                response_json = response.json()
+                mms_id = response_json['bib_data']['mms_id']
+                holding_id = response_json['holding_data']['holding_id']
+                item_id = response_json['item_data']['pid']
+                requests_url = '{}users/{}/requests?mms_id={}&apikey={}'.format(alma_api_base_url, user_id, mms_id, api_key)
+                request_json = {}
+                request_json['request_type'] = 'HOLD'
+                request_json['holding_id'] =holding_id
+                request_json['pickup_location_type'] = 'LIBRARY'
+                request_json['pickup_location_library'] = request['Abholort'].strip()
+                request_json['booking_start_date'] = '{}-{}-{}'.format(date[:4], date[4:6], date[6:])
+                set_request = requests.post(url=requests_url, data=json.dumps(request_json).encode('utf-8'),
+                                      headers={'Content-Type': 'application/json'})
+
+                if set_request.status_code == 200:
+                    logging.info('succesfully created request for user {} for mms_id, holding_id {}, {}'.format(user_id, mms_id, holding_id))
+                else:
+                    logging.error('problem creating request for user {} for mms_id, holding_id {}, {}'.format(user_id, mms_id, holding_id))
+                    logging.error(set_request.status_code)
+                    logging.error(set_request.text)
+
+            else:
+                logging.warning(response.text)
+        except:
+            logging.error('problem creating request for user {} and item - no response from API'.format(user_id, item_id))
+
+
+
+
+
 
 
 # Haupt-Startpunkt eines jeden Python-Programms.
 if __name__ == '__main__':
 
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    project = 'partners'
+    project = 'partners_wup'
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(project)
@@ -500,4 +559,5 @@ if __name__ == '__main__':
     # update_partners(run_name)
     # update_partners_resending_due_interval(project)
     extend_partner_names()
+    # set_requests()
 

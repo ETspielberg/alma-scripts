@@ -1,6 +1,6 @@
 {
   "project": "url_extender",
-  "file": "wbg_bibl_theo_2",
+  "file": "vr_pda_202101_2.mrc",
   "format": "marc",
   "record_type": "portfolio",
   "lineCheckers": [
@@ -10,7 +10,7 @@
       "checklist": [
         ""
       ],
-      "field": "8564 ",
+      "field": "85640",
       "position": 8
     }
   ]
