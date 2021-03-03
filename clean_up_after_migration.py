@@ -10,7 +10,7 @@ from service.google_service import get_google_data
 from service.list_reader_service import load_identifier_list_of_type
 
 # Basis-URL für die Alma API
-from service.table_reader_service import read_requests_table
+from service.table_reader_service import read_requests_table, read_sem_apps_table
 
 alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
 
@@ -530,8 +530,57 @@ def set_requests():
             logging.error('problem creating request for user {} and item - no response from API'.format(user_id, item_id))
 
 
+def set_sem_apps():
+    table = read_sem_apps_table()
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+    # alle Lieferanten durchgehen
+    for index, sem_app in table.iterrows():
+        time.sleep(0.5)
+        primary_identifier = sem_app['PrimaryIdentifier'].strip()
+        barcode = sem_app['barcode'].strip()
+        try:
+            logging.debug('processing item with barcode {}'.format(barcode))
+            url = '{}items?item_barcode={}&apikey={}'.format(alma_api_base_url, barcode, api_key)
+            response = requests.get(url=url, headers={'Accept': 'application/json'})
+            response.encoding = 'utf-8'
 
+            # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+            if response.status_code == 200:
+                item = response.json()
+                mms_id = item['bib_data']['mms_id']
+                holding_id = item['holding_data']['holding_id']
+                item_id = item['item_data']['pid']
+                library = item['item_data']['library']['value']
+                sem_app_user_url = '{}users/{}?apikey={}'.format(alma_api_base_url, primary_identifier, api_key)
+                sem_app_response = requests.get(url=sem_app_user_url, headers={'Accept': 'application/json'})
+                if sem_app_response.status_code == 200:
+                    sem_app_response.encoding = 'utf-8'
+                    for address in sem_app_response['contact_info']['[address']:
+                        if address['preferred'] == 'true':
+                            item['item_data']['public_note'] = address['line_1']
+                            item['holding_data']['in_temp_location'] = 'true'
+                            item['holding_data']['temp_library']['vaslue'] = library
+                            if library == 'E0001':
+                                item['holding_data']['temp_location']['value'] = 'ESA'
+                            elif library == 'D0001':
+                                item['holding_data']['temp_location']['value'] = 'DSA'
+                            elif library == 'E0023':
+                                item['holding_data']['temp_location']['value'] = 'MSA'
+                    item_url = '{}bibs/{}/holdings/{}/items/{}?apikey={}'.format(alma_api_base_url, mms_id, holding_id, item_id, api_key)
+                    update = requests.put(url=item_url, data=json.dumps(item).encode('utf-8'),
+                                  headers={'Content-Type': 'application/json'})
+                    # Die Kodierung der Antwort auf UTF-8 festlegen
+                    update.encoding = 'utf-8'
 
+                    # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+                    if update.status_code == 200:
+                        logging.info('succesfully updated item {}'.format(barcode))
+                    else:
+                        logging.error('problem updating item {}:{}'.format(barcode, update.text))
+            else:
+                logging.warning(response.text)
+        except:
+            logging.error('problem processing item with barcode {} loaned to sem app {} - no response from API'.format(barcode, primary_identifier))
 
 
 

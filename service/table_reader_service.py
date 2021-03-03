@@ -28,7 +28,10 @@ D_TYPES = {'Kennung': object,
            'Priorität': object,
            'angelegt am': object,
            'Barcode': object,
-           'Abholort': object
+           'Abholort': object,
+           'UserGroup': object,
+           'ItemId': object,
+           'PrimaryIdentifier': object
            }
 
 
@@ -80,3 +83,10 @@ def read_requests_table():
     path_to_file = input_folder_csv.format('offene_vormerkungen')
     table = pd.read_csv(path_to_file, dtype=D_TYPES, delimiter='|')
     return table
+
+
+def read_sem_apps_table():
+    path_to_file = input_folder_csv.format('offene_vormerkungen')
+    table = pd.read_csv(path_to_file, dtype=D_TYPES, delimiter=',')
+    return table
+
