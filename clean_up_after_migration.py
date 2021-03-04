@@ -344,44 +344,89 @@ def update_partners(project):
             # 0 ist (= keine Rechnungen am Lieferanten)
             partner_json = response.json()
 
+            # Dieser boolean entscheidet, ob der Code des Partners geändert wurde.
+            changed_code = False
             try:
+                # die ISO-Details auslesen
                 iso_details = partner_json['partner_details']['profile_details']['iso_details']
+                # den Server setzen
                 iso_details['ill_server'] = 'zfl2-test.hbz-nrw.de'
+                # den Port setzen
                 iso_details['ill_port'] = '33242'
+                # das Resending overdue message interval setzen
+                iso_details['resending_overdue_message_interval'] = 21
+                # das iso-Symbol auslesen
                 iso_symbol = iso_details['iso_symbol']
+                # falls noch kein DE- im Symbol ist, dieses ergänzen
                 if 'DE-' not in iso_symbol:
                     iso_details['iso_symbol'] = 'DE-' + iso_symbol
+                # ggf. die Schrägstriche entfernen
+                iso_symbol = iso_symbol.replace("/", "-")
+                # den code entsprechend ändern und den boolean entsprechend setzen
+                partner_json['code'] = iso_symbol
+                changed_code = True
             except KeyError:
                 logging.error('no iso details for partner {}'.format(partner))
+
+            # generelle Partner details setzen
             partner_details = partner_json['partner_details']
             partner_details['borrowing_supported'] = True
             partner_details['lending_supported'] = True
             partner_details['borrowing_workflow'] = 'DEFAULT_BOR_WF'
             partner_details['lending_workflow'] = 'DEFAULT_LENDING_WF'
 
-            address_block = partner_json['contact_info']['address'][0]
+            # Adressen durchgehen, alle bis auf die preferred löschen
+            for address in partner_json['contact_info']['address']:
+                if not address['preferred']:
+                    partner_json['contact_info']['address'].remove(address)
 
-            google_data = get_google_data(address_block)
-            if google_data is not None:
-                for address_data in google_data['result']['address_components']:
-                    if 'country' in address_data['types']:
-                        if address_data['short_name'] == 'DE':
-                            partner_json['contact_info']['address'][0]['country'] = {"value": "DEU"}
-                    elif 'locality' in address_data['types']:
-                        partner_json['contact_info']['address'][0]['city'] = address_data['long_name']
+            # E-Mails durchgehen, alle bis auf die preferred löschen, die preferred zusätzlich in den iso-details eintragen
+            for email in partner_json['contact_info']['email']:
+                if email['preferred']:
+                    partner_json['partner_details']['profile_details']['iso_details']['email_address'] = email['email_address']
+                else:
+                    partner_json['contact_info']['email'].remove(email)
 
+            # Update der Adressdaten anhand von Google Maps Ergebnissen
+            #google_data = get_google_data(address_block)
+            #if google_data is not None:
+            #    for address_data in google_data['result']['address_components']:
+            #        if 'country' in address_data['types']:
+            #            if address_data['short_name'] == 'DE':
+            #                partner_json['contact_info']['address'][0]['country'] = {"value": "DEU"}
+            #        elif 'locality' in address_data['types']:
+            #            partner_json['contact_info']['address'][0]['city'] = address_data['long_name']
+
+            # wenn der Partner code ersetzt wurde, kein Update des Partners durchführen, sondern einen neuen Partner anlegen
+            if changed_code:
+                # URL für POST (ohne Partner-Code)
+                url_new = '{}partners?apikey={}'.format(alma_api_base_url, api_key)
+                # Partner als neuen Partner speichern
+                new_partner = requests.post(url=url_new, data=json.dumps(partner_json).encode('utf-8'),
+                                              headers={'Content-Type': 'application/json'})
+                # nur wenn das Anlegen erfolgreich war, den alten Partner löschen
+                if new_partner.status_code == 200 or new_partner.status_code == 204:
+                    logging.info('succesfully created partner {}'.format(new_partner.json()['code']))
+                    requests.delete(url=url)
+                    logging.info('deleted old partner')
+
+
+            # wenn der Partner-Code nicht ersetzt wurde, ein einfaches Update durchführen.
+            else:
                 # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
+                update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
+                                              headers={'Content-Type': 'application/json'})
             update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
                                   headers={'Content-Type': 'application/json'})
 
-            # Die Kodierung der Antwort auf UTF-8 festlegen
-            update.encoding = 'utf-8'
+                # Die Kodierung der Antwort auf UTF-8 festlegen
+                update.encoding = 'utf-8'
 
-            # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
-            if update.status_code == 200:
-                logging.info('succesfully updated partner {}'.format(partner))
-            else:
-                logging.error('problem updating partner {}:{}'.format(partner, update.text))
+                # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+                if update.status_code == 200:
+                    logging.info('succesfully updated partner {}'.format(partner))
+                else:
+                    logging.error('problem updating partner {}:{}'.format(partner, update.text))
         else:
             logging.error(response.text)
 
@@ -474,7 +519,7 @@ def update_partners_resending_due_interval(project):
 
             try:
                 iso_details = partner_json['partner_details']['profile_details']['iso_details']
-                iso_details['resending_overdue_message_interval'] = 10
+                iso_details['resending_overdue_message_interval'] = 21
             except KeyError:
                 logging.error('no iso details for partner {}'.format(partner))
             update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
@@ -607,7 +652,7 @@ def set_sem_apps():
 # Haupt-Startpunkt eines jeden Python-Programms.
 if __name__ == '__main__':
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    project = 'sem_apps'
+    project = 'partners_2'
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(project)
