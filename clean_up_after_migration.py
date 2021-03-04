@@ -48,7 +48,8 @@ def update_users():
                                        '"record_type":{"value":"STAFF","desc":"Staff"}')
 
                 # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
-                update = requests.put(url=url, data=payload.encode('utf-8'), headers={'Content-Type': 'application/json'})
+                update = requests.put(url=url, data=payload.encode('utf-8'),
+                                      headers={'Content-Type': 'application/json'})
 
                 # Antwort-Encoding ist wieder UTF-8
                 update.encoding = 'utf-8'
@@ -119,7 +120,7 @@ def deactivate_non_used_vendors(type):
     for vendor_line in vendors:
 
         # Die URL für die API zusammensetzen
-        url = '{}acq/vendors/{}/po-lines?apikey={}'.format(alma_api_base_url,vendor_line, api_key)
+        url = '{}acq/vendors/{}/po-lines?apikey={}'.format(alma_api_base_url, vendor_line, api_key)
 
         # Die GET-Abfrage ausführen
         get_list = requests.get(url=url, headers={'Accept': 'application/json'})
@@ -155,10 +156,11 @@ def deactivate_non_used_vendors(type):
 
                         # den Status-Wert "Active" durch "Inactive" ersetzen
                         payload = info.replace('"status":{"value":"ACTIVE","desc":"Active"}',
-                                   '"status":{"value":"INACTIVE","desc":"Inactive"}')
+                                               '"status":{"value":"INACTIVE","desc":"Inactive"}')
 
                         # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
-                        update = requests.put(url=url, data=payload.encode('utf-8'), headers={'Content-Type': 'application/json'})
+                        update = requests.put(url=url, data=payload.encode('utf-8'),
+                                              headers={'Content-Type': 'application/json'})
 
                         # Die Kodierung der Antwort auf UTF-8 festlegen
                         update.encoding = 'utf-8'
@@ -173,7 +175,8 @@ def deactivate_non_used_vendors(type):
                 else:
                     logging.error(get.text)
             else:
-                logging.warning('account {} still has {} po-lines'.format(vendor_line, get_list.json()['total_record_count']))
+                logging.warning(
+                    'account {} still has {} po-lines'.format(vendor_line, get_list.json()['total_record_count']))
         else:
             logging.error(get_list.text)
 
@@ -209,22 +212,28 @@ def set_liable_for_vat():
             payload = info.replace('"liable_for_vat":false,', '"liable_for_vat":true,')
 
             if '"country":{"value":"DE"' in payload:
-                payload = payload.replace('"country":{"value":"DE","desc":""}', '"country":{"value":"DEU","desc":"Germany"}')
+                payload = payload.replace('"country":{"value":"DE","desc":""}',
+                                          '"country":{"value":"DEU","desc":"Germany"}')
 
             if '"country":{"value":"Germany"' in payload:
-                payload = payload.replace('"country":{"value":"Germany","desc":""}', '"country":{"value":"DEU","desc":"Germany"}')
+                payload = payload.replace('"country":{"value":"Germany","desc":""}',
+                                          '"country":{"value":"DEU","desc":"Germany"}')
 
             if '"country":{"value":"Deutschland"' in payload:
-                payload = payload.replace('"country":{"value":"Deutschland","desc":""}', '"country":{"value":"DEU","desc":"Germany"}')
+                payload = payload.replace('"country":{"value":"Deutschland","desc":""}',
+                                          '"country":{"value":"DEU","desc":"Germany"}')
 
             if '"country":{"value":"Schweiz"' in payload:
-                payload = payload.replace('"country":{"value":"Schweiz","desc":""}', '"country":{"value":"CHE","desc":"Germany"}')
+                payload = payload.replace('"country":{"value":"Schweiz","desc":""}',
+                                          '"country":{"value":"CHE","desc":"Germany"}')
 
             if '"country":{"value":"Japan"' in payload:
-                payload = payload.replace('"country":{"value":"Japan","desc":""}', '"country":{"value":"JPN","desc":"Germany"}')
+                payload = payload.replace('"country":{"value":"Japan","desc":""}',
+                                          '"country":{"value":"JPN","desc":"Germany"}')
 
             if '"country":{"value":"Belgien"' in payload:
-                payload = payload.replace('"country":{"value":"Belgien","desc":""}', '"country":{"value":"BEL","desc":"Germany"}')
+                payload = payload.replace('"country":{"value":"Belgien","desc":""}',
+                                          '"country":{"value":"BEL","desc":"Germany"}')
 
             # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
             update = requests.put(url=url, data=payload.encode('utf-8'), headers={'Content-Type': 'application/json'})
@@ -290,7 +299,7 @@ def fill_financial_code():
 
             for address in get_json['contact_info']['address']:
                 if address['country']['value'] == 'Deutschland':
-                     address['country']['value'] = 'DEU'
+                    address['country']['value'] = 'DEU'
 
             # den aktualisierten Lieferanten per PUT-Abfrage nach Alma schreiben (gleiche url wie bei der Abfrage,
             # das JSON-object wird über json.dumps in einen Text umgewandelt.
@@ -299,7 +308,7 @@ def fill_financial_code():
             # die Kodierung der Antwort setzen
             update.encoding = 'utf-8'
 
-             # Prüfen, ob die Abfrage erfolgreich war (Status Code 200) und alles in die Log-Datei schreiben
+            # Prüfen, ob die Abfrage erfolgreich war (Status Code 200) und alles in die Log-Datei schreiben
             if update.status_code == 200:
                 logging.info('succesfully updated vendor {}'.format(vendor_line))
             else:
@@ -363,7 +372,7 @@ def update_partners(project):
 
                 # Update als PUT-Abfrage ausführen. URL ist die gleiche, Encoding ist wieder utf-8, Inhalt ist JSON
             update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
-                                              headers={'Content-Type': 'application/json'})
+                                  headers={'Content-Type': 'application/json'})
 
             # Die Kodierung der Antwort auf UTF-8 festlegen
             update.encoding = 'utf-8'
@@ -416,7 +425,7 @@ def extend_partner_names():
                         if not name.startswith('DE-'):
                             partner_json['partner_details']['name'] = '{} ({})'.format(symbol, name)
                         update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
-                                      headers={'Content-Type': 'application/json'})
+                                              headers={'Content-Type': 'application/json'})
 
                         # Die Kodierung der Antwort auf UTF-8 festlegen
                         update.encoding = 'utf-8'
@@ -469,7 +478,7 @@ def update_partners_resending_due_interval(project):
             except KeyError:
                 logging.error('no iso details for partner {}'.format(partner))
             update = requests.put(url=url, data=json.dumps(partner_json).encode('utf-8'),
-                                              headers={'Content-Type': 'application/json'})
+                                  headers={'Content-Type': 'application/json'})
 
             # Die Kodierung der Antwort auf UTF-8 festlegen
             update.encoding = 'utf-8'
@@ -507,27 +516,33 @@ def set_requests():
                 mms_id = response_json['bib_data']['mms_id']
                 holding_id = response_json['holding_data']['holding_id']
                 item_id = response_json['item_data']['pid']
-                requests_url = '{}users/{}/requests?mms_id={}&apikey={}'.format(alma_api_base_url, user_id, mms_id, api_key)
+                requests_url = '{}users/{}/requests?mms_id={}&apikey={}'.format(alma_api_base_url, user_id, mms_id,
+                                                                                api_key)
                 request_json = {}
                 request_json['request_type'] = 'HOLD'
-                request_json['holding_id'] =holding_id
+                request_json['holding_id'] = holding_id
                 request_json['pickup_location_type'] = 'LIBRARY'
                 request_json['pickup_location_library'] = request['Abholort'].strip()
                 request_json['booking_start_date'] = '{}-{}-{}'.format(date[:4], date[4:6], date[6:])
                 set_request = requests.post(url=requests_url, data=json.dumps(request_json).encode('utf-8'),
-                                      headers={'Content-Type': 'application/json'})
+                                            headers={'Content-Type': 'application/json'})
 
                 if set_request.status_code == 200:
-                    logging.info('succesfully created request for user {} for mms_id, holding_id {}, {}'.format(user_id, mms_id, holding_id))
+                    logging.info(
+                        'succesfully created request for user {} for mms_id, holding_id {}, {}'.format(user_id, mms_id,
+                                                                                                       holding_id))
                 else:
-                    logging.error('problem creating request for user {} for mms_id, holding_id {}, {}'.format(user_id, mms_id, holding_id))
+                    logging.error(
+                        'problem creating request for user {} for mms_id, holding_id {}, {}'.format(user_id, mms_id,
+                                                                                                    holding_id))
                     logging.error(set_request.status_code)
                     logging.error(set_request.text)
 
             else:
                 logging.warning(response.text)
         except:
-            logging.error('problem creating request for user {} and item - no response from API'.format(user_id, item_id))
+            logging.error(
+                'problem creating request for user {} and item - no response from API'.format(user_id, item_id))
 
 
 def set_sem_apps():
@@ -535,60 +550,64 @@ def set_sem_apps():
     api_key = os.environ['ALMA_SCRIPT_API_KEY']
     # alle Lieferanten durchgehen
     for index, sem_app in table.iterrows():
-        time.sleep(0.5)
+        # time.sleep(0.5)
+        print(sem_app['Barcode'])
         primary_identifier = sem_app['PrimaryIdentifier'].strip()
-        barcode = sem_app['barcode'].strip()
-        try:
-            logging.debug('processing item with barcode {}'.format(barcode))
-            url = '{}items?item_barcode={}&apikey={}'.format(alma_api_base_url, barcode, api_key)
-            response = requests.get(url=url, headers={'Accept': 'application/json'})
-            response.encoding = 'utf-8'
+        barcode = sem_app['Barcode'].strip()
+        # try:
+        logging.debug('processing item with barcode {}'.format(barcode))
+        url = '{}items?item_barcode={}&apikey={}'.format(alma_api_base_url, barcode, api_key)
+        response = requests.get(url=url, headers={'Accept': 'application/json'})
+        response.encoding = 'utf-8'
 
-            # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
-            if response.status_code == 200:
-                item = response.json()
-                mms_id = item['bib_data']['mms_id']
-                holding_id = item['holding_data']['holding_id']
-                item_id = item['item_data']['pid']
-                library = item['item_data']['library']['value']
-                sem_app_user_url = '{}users/{}?apikey={}'.format(alma_api_base_url, primary_identifier, api_key)
-                sem_app_response = requests.get(url=sem_app_user_url, headers={'Accept': 'application/json'})
-                if sem_app_response.status_code == 200:
-                    sem_app_response.encoding = 'utf-8'
-                    for address in sem_app_response['contact_info']['[address']:
-                        if address['preferred'] == 'true':
-                            item['item_data']['public_note'] = address['line_1']
-                            item['holding_data']['in_temp_location'] = 'true'
-                            item['holding_data']['temp_library']['vaslue'] = library
-                            if library == 'E0001':
-                                item['holding_data']['temp_location']['value'] = 'ESA'
-                            elif library == 'D0001':
-                                item['holding_data']['temp_location']['value'] = 'DSA'
-                            elif library == 'E0023':
-                                item['holding_data']['temp_location']['value'] = 'MSA'
-                    item_url = '{}bibs/{}/holdings/{}/items/{}?apikey={}'.format(alma_api_base_url, mms_id, holding_id, item_id, api_key)
-                    update = requests.put(url=item_url, data=json.dumps(item).encode('utf-8'),
-                                  headers={'Content-Type': 'application/json'})
-                    # Die Kodierung der Antwort auf UTF-8 festlegen
-                    update.encoding = 'utf-8'
+        # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+        if response.status_code == 200:
+            item = response.json()
+            mms_id = item['bib_data']['mms_id']
+            holding_id = item['holding_data']['holding_id']
+            item_id = item['item_data']['pid']
+            library = item['item_data']['library']['value']
+            sem_app_user_url = '{}users/{}?apikey={}'.format(alma_api_base_url, primary_identifier, api_key)
+            sem_app_response = requests.get(url=sem_app_user_url, headers={'Accept': 'application/json'})
+            if sem_app_response.status_code == 200:
+                sem_app_response.encoding = 'utf-8'
+                sem_app = sem_app_response.json()
+                for address in sem_app['contact_info']['address']:
+                    print(address)
+                    if address['preferred']:
+                        print('building item')
+                        item['item_data']['public_note'] = address['line1']
+                        item['holding_data']['in_temp_location'] = True
+                        item['holding_data']['temp_library']['value'] = library
+                        if library == 'E0001':
+                            item['holding_data']['temp_location']['value'] = 'ESA'
+                        elif library == 'D0001':
+                            item['holding_data']['temp_location']['value'] = 'DSA'
+                        elif library == 'E0023':
+                            item['holding_data']['temp_location']['value'] = 'MSA'
+                item_url = '{}bibs/{}/holdings/{}/items/{}?apikey={}'.format(alma_api_base_url, mms_id, holding_id,
+                                                                             item_id, api_key)
+                # print(json.dumps(item))
+                update = requests.put(url=item_url, data=json.dumps(item).encode('utf-8'),
+                                      headers={'Content-Type': 'application/json'})
+                # Die Kodierung der Antwort auf UTF-8 festlegen
+                update.encoding = 'utf-8'
 
-                    # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
-                    if update.status_code == 200:
-                        logging.info('succesfully updated item {}'.format(barcode))
-                    else:
-                        logging.error('problem updating item {}:{}'.format(barcode, update.text))
-            else:
-                logging.warning(response.text)
-        except:
-            logging.error('problem processing item with barcode {} loaned to sem app {} - no response from API'.format(barcode, primary_identifier))
-
+                # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+                if update.status_code == 200:
+                    logging.info('succesfully updated item {}'.format(barcode))
+                else:
+                    logging.error('problem updating item {}:{}'.format(barcode, update.text))
+        else:
+            logging.warning(response.text)
+# except:
+#    logging.error('problem processing item with barcode {} loaned to sem app {} - no response from API'.format(barcode, primary_identifier))
 
 
 # Haupt-Startpunkt eines jeden Python-Programms.
 if __name__ == '__main__':
-
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    project = 'partners_wup'
+    project = 'sem_apps'
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(project)
@@ -607,6 +626,6 @@ if __name__ == '__main__':
     # set_liable_for_vat()
     # update_partners(run_name)
     # update_partners_resending_due_interval(project)
-    extend_partner_names()
+    # extend_partner_names()
     # set_requests()
-
+    set_sem_apps()
