@@ -1,5 +1,6 @@
 import os
 
+import logging
 
 def load_identifier_list(provider):
     path_to_file = os.getcwd() + '/data/input/' + provider + '/isbn_list.txt'
@@ -33,6 +34,7 @@ def save_identifier_list_of_type(provider, identifier, list_type):
 
 def load_identifier_list_of_type(identifier_type):
     path_to_file = os.getcwd() + '/data/input/' + identifier_type + '_list.txt'
+    logging.info('loading file {}'.format(path_to_file))
     with open(path_to_file, encoding='utf-8') as f:
         isbns = f.readlines()
         f.close()
