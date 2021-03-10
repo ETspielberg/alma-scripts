@@ -18,7 +18,7 @@ def load_data(filename, library):
 
 def generate_output():
     with open('data/output/IZEXCLUDE_list.txt', "w") as output_file:
-        for file in os.listdir('data/temp/'):
+        for file in os.listdir('data/input/'):
             if file.startswith('ids_'):
                 with open('data/temp/{}'.format(file), 'r') as input_file:
                     output_file.write(input_file.read())
@@ -31,9 +31,18 @@ def generate_folders():
         os.mkdir('data')
 
 
+def generate_p2e_output():
+    with open('data/output/p2e_list.txt', "w", encoding='utf-8') as output_file:
+        for file in os.listdir('data/input/TL2_P2E'):
+            print('loading file')
+            with open('data/input/TL2_P2E/{}'.format(file), 'r', encoding='utf-8') as input_file:
+                    output_file.write(input_file.read())
+
+
 if __name__ == '__main__':
-    generate_folders()
-    filename = 'Collections_NZ.xlsx'
-    library = 'UB_DuE'
-    load_data(filename, library)
-    generate_output()
+    generate_p2e_output()
+    # generate_folders()
+    # filename = 'Collections_NZ.xlsx'
+    # library = 'UB_DuE'
+    # load_data(filename, library)
+    # generate_output()

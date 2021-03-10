@@ -23,10 +23,9 @@ def add_arrival_information_to_order(project):
     # Alle Zeilen durchgehen
     for index, row in table.iterrows():
         # Wenn es sich um einen weiteren Eintrag zur aktuellen Bestellung handelt, den Notiztext den Notizen hinzufügen
-        if order_number == row['order_number']:
+        if order_number == row['order_number'].strip():
             # Notiz-Text erzeugen
-            note_text = '{} Ex am {} erhalten: {}'.format(row['number_of_items'], row['arrival_date'],
-                                                          row['arrival_note'])
+            note_text = '{} ({})'.format(row['arrival_note'], row['arrival_date'])
 
             # Notiz-Text als note-text-Objekt der note-Liste hinzufügen
             json_order['note'].append({"note_text": note_text})
@@ -37,7 +36,7 @@ def add_arrival_information_to_order(project):
             update_order(json_order, order_number, api_key)
 
             # die neue Bestellnummer auslesen
-            order_number = row['order_number']
+            order_number = row['order_number'].strip()
 
             # die URL basteln
             url = '{}acq/po-lines/{}?apikey={}'.format(alma_api_base_url, order_number, api_key)
@@ -54,8 +53,7 @@ def add_arrival_information_to_order(project):
                 logging.debug(json.dumps(json_order))
 
                 # die entsprechende Notiz erzeugen und anhängen
-                note_text = '{} Ex am {} erhalten: {}'.format(row['number_of_items'], row['arrival_date'],
-                                                              row['arrival_note'])
+                note_text = '{} ({})'.format(row['arrival_note'], row['arrival_date'])
                 if json_order['note'] == '':
                     json_order['note'] = [{"note_text": note_text}]
                 else:
@@ -82,7 +80,7 @@ def update_order(order, order_number, api_key):
 # Haupt-Startpunkt eines jeden Python-Programms.
 if __name__ == '__main__':
     # den Namen des Laufs angeben. Dieser definiert den name der Log-Datei und den Typ an Liste, die geladen wird.
-    run_name = 'LBA-234'
+    run_name = 'Arrival_notes_FF'
 
     # den Namen der Logdatei festlegen
     log_file = 'data/output/{}.log'.format(run_name)

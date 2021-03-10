@@ -263,7 +263,7 @@ class ListFilter:
             os.mkdir(base_directory)
         # Der Name der Ausgabedatei
         output_filename = '{}/field_{}_{}_list.txt'.format(base_directory, field, self._project)
-        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
+        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers)-1)
         # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
         if os.path.exists(output_filename):
             logging.info('output file exists.')
@@ -274,6 +274,7 @@ class ListFilter:
             # Lese die Zeilen in eine Liste.
             lines = input_file.readlines()
             for index, line in enumerate(lines):
+                print(line_checker.check(line))
                 if line_checker.check(line):
                     with open(output_filename, 'a+', encoding="utf8") as output_file:
                         output_file.writelines(line_checker.get_value(line) + '\n')
@@ -313,13 +314,42 @@ class ListFilter:
                     if line_checker.check(line):
                         urls = line_checker.get_value(line).split('$$u')
                         for url in urls:
+                            if url.endswith('ean='):
+                                continue
                             if url == '':
                                 continue
-                            output_file.writelines('{}$$u{}\n'.format(line[0:line_checker.format.value_start+1], url))
+                            output_file.writelines('{}$$u{}\n'.format(line[0:line_checker.format.value_start], url))
                     else:
                         output_file.writelines(line)
                 output_file.close()
             input_file.close()
+
+    def remove_field(self, field_list):
+        base_directory = output_dir.format(self._project)
+        line_checker = self._line_checkers[0]
+        if not os.path.exists(base_directory):
+            os.mkdir(base_directory)
+        # Der Name der Ausgabedatei
+        output_filename = '{}/{}'.format(base_directory, 'out_' + self._filename)
+        input_filename = 'data/temp/{}/step_{}.txt'.format(self._project, len(self._line_checkers))
+        # Wenn die Datei bereits exisitiert, wird sie gelöscht und eine entsprechende Meldung ausgegeben.
+        if os.path.exists(output_filename):
+            logging.info('output file exists.')
+            os.remove(output_filename)
+        # Die Datei im "Anhängen"-Modus öffnen und die einzelnen Zeilen des Eintrags der Datei anhängen. Dann die Datei
+        # schließen.
+        with open(input_filename, 'r', encoding="utf8") as input_file:
+            with open(output_filename, 'a+', encoding="utf8") as output_file:
+                # Lese die Zeilen in eine Liste.
+                lines = input_file.readlines()
+                for index, line in enumerate(lines):
+                    if line_checker.get_field(line) in field_list:
+                        continue
+                    else:
+                        output_file.writelines(line)
+                output_file.close()
+            input_file.close()
+
 
     def test_field_values(self):
         """

@@ -1,6 +1,6 @@
 {
-  "project": "url_extender",
-  "file": "vr_pda_202101_2.mrc",
+  "project": "springer_all",
+  "file": "gue_springer_isbn.txt",
   "format": "marc",
   "record_type": "portfolio",
   "lineCheckers": [
@@ -10,7 +10,7 @@
       "checklist": [
         ""
       ],
-      "field": "85640",
+      "field": "540a",
       "position": 8
     }
   ]
