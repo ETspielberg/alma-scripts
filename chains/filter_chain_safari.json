@@ -1,0 +1,17 @@
+{
+  "project": "safari",
+  "file": "safari_202012_all_2.mrc",
+  "record_type": "db",
+  "format": "marc",
+  "lineCheckers": [
+    {
+      "mode": "remove",
+      "method_name": "char_at_position",
+      "checklist": [
+        "d"
+      ],
+      "field": "LDR  ",
+      "position": 5
+    }
+  ]
+}
