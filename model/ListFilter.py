@@ -24,7 +24,8 @@ class ListFilter:
     # überprüft, ob die Einträge in einer Datei zusammenhängend sind.
     def test_ordering(self):
         """
-        terst whether the ordering of the fields is ok. fields with one identifier are to be close together without other lines in between
+        terst whether the ordering of the fields is ok. fields with one identifier are to be close together without
+        other lines in between
         :return: True, if the file is well ordered
         """
         # öffne die input-Datei
@@ -55,7 +56,8 @@ class ListFilter:
     # Löscht temporäre Dateien eines vorherigen Laufes
     def clean_temp_folder(self, project):
         """
-        checks whether temporary and output folder exists and creates them if necessary. Also removes files from previous runs.
+        checks whether temporary and output folder exists and creates them if necessary. Also removes files from
+        previous runs.
         :param project:
         :return:
         """
@@ -244,16 +246,17 @@ class ListFilter:
                         output_file.close()
                     sys_old = sys_new
 
-    def generate_field_value_list(self, field, short, format=''):
+    def generate_field_value_list(self, field, short, file_format=''):
         """
         creates a list of field values from the refined records
         :param field: the field to be extracted
         :param short: whether to use only the short field (three characters) or the long field (four characters)
+        :param file_format: the format of the file
         """
         if short:
-            line_checker = LineChecker(method_name='is_short_field', field=field, format=format)
+            line_checker = LineChecker(method_name='is_short_field', field=field, format=file_format)
         else:
-            line_checker = LineChecker(method_name='is_field', field=field, format=format)
+            line_checker = LineChecker(method_name='is_field', field=field, format=file_format)
         # Das Basisverzeichnis ist data/output relativ zum Verzeichnis dieser Datei.
         base_directory = output_dir.format(self._project)
         if not os.path.exists(base_directory):

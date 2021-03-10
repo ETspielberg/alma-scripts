@@ -41,6 +41,8 @@ def run_project(project):
     list_filter = add_sys_list_checker(list_filter)
     list_filter = add_id_checker(list_filter)
 
+    # list_filter.test_field_values()
+
     # Filter anwenden
     list_filter.filter()
     return list_filter
@@ -49,15 +51,15 @@ def run_project(project):
 # Hauptstartpunkt. Python startet anhand dieser Zeilen das Skript. Muss am Ende stehen.
 if __name__ == '__main__':
 
-    # projects = ['db', 'zsn', 'ebooks', 'db_lizenzfrei', 'zsn_lizenzfrei', 'ebooks_lizenzfrei', 'collections_from_db']
-    projects = ['zsn_ezb']
+    projects = ['db', 'zsn', 'ebooks', 'db_lizenzfrei', 'zsn_lizenzfrei', 'ebooks_lizenzfrei', 'collections_from_db']
+    # projects = ['safari']
     for project in projects:
         list_filter = run_project(project=project)
 
         # aus der letzten temporären Datei wird die P2E-Datei erzeugt.
-        list_filter.generate_p2e_file()
+        # list_filter.generate_p2e_file()
 
         # aus der letzten temporären Datei wird eine Liste der Feld-Werte erzeugt
-        list_filter.generate_field_value_list(field='001 ', short=False, format='')
+        # list_filter.generate_field_value_list(field='001 ', short=False, format='')
 
     logging.info('finished')
