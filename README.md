@@ -42,6 +42,19 @@ e.g. a list of ill partners of list type "partners" would read partners_list.txt
 
 ### marc_processor.py
 
+Files to be processed are to be placed in the /data/input folder. Filter chains are defined in the /chains folder as json documents.
+
+Each chain is named accoding to "filter_chain_<project>.json". The projects to be run are defined in the main function of the marc_processor.py:
+
+projects = ['ebooks_lizenzfrei', 'collections_from_db', 'zsn_ezb']. This would load the chain files
+
+* "filter_chain_ebooks_lizenzfrei.json"
+* "filter_chain_collections_from_db.json"
+* "filter_chain_zsn_ezb.json"
+
+and run the corresponding filter chain. 
+Logging is provided in the corresponding log files ("marc_processor_<project>.log") in the output folder (/output) whereas the generated files are found in a subfolder of the output folder named according to the project
+
 ### clean_up_after_migration.py
 
 ### clean_up_list.py

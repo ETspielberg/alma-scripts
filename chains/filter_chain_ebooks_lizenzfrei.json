@@ -1,6 +1,6 @@
 {
   "project": "p2e_ebooks",
-  "file": "TL2_p2e_ebooks_sort.lst",
+  "file": "CL_p2e_ebooks_sort.lst",
   "record_type": "portfolio",
   "lineCheckers": [
     {
