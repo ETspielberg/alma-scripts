@@ -1,0 +1,19 @@
+{
+  "project": "p2e_ebooks_lokal",
+  "file": "TL2_lokale_Titel.lst",
+  "record_type": "portfolio",
+  "lineCheckers": [
+    {
+      "mode": "append",
+      "method_name": "contains",
+      "checklist": [
+        "EBA Cambridge",
+        "PDA Wiley 2019",
+        "SIAM",
+        "Safari"
+      ],
+      "field": "078e",
+      "position": 1
+    }
+  ]
+}
