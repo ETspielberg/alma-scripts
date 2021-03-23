@@ -52,8 +52,8 @@ def run_project(project):
 
 # Hauptstartpunkt. Python startet anhand dieser Zeilen das Skript. Muss am Ende stehen.
 if __name__ == '__main__':
-    # rojects = ['db', 'zsn', 'ebooks', 'db_lizenzfrei', 'zsn_lizenzfrei', 'ebooks_lizenzfrei', 'collections_from_db', 'zsn_ezb']
-    projects = ['db_lizenzfrei']
+    projects = ['db', 'zsn', 'ebooks', 'db_lizenzfrei', 'zsn_lizenzfrei', 'ebooks_lizenzfrei', 'collections_from_db', 'zsn_ezb','ebooks_ebs_activation']
+   #  projects = ['db_lizenzfrei']
     # projects = ['springer_all']
     for project in projects:
         list_filter = run_project(project=project)
