@@ -205,3 +205,4 @@ class LineChecker(object):
         logging.info('id = "{}"'.format(self.get_id(line)))
         logging.info('field = "{}"'.format(self.get_field(line)))
         logging.info('value = "{}"'.format(self.get_value(line)))
+        logging.info('value at position {}: {}'.format(self._position, self.get_value(line)[self._position]))

@@ -1,7 +1,7 @@
 {
   "project": "p2e_db",
-  "file": "TL2_p2e_db_sort.lst",
-  "record_type": "db",
+  "file": "CL_p2e_db_sort.lst",
+  "record_type": "DB",
   "lineCheckers": [
     {
       "mode": "remove",
