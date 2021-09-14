@@ -3,7 +3,7 @@ import os
 import logging
 
 def load_identifier_list(provider):
-    path_to_file = os.getcwd() + '/data/input/' + provider + '/isbn_list.txt'
+    path_to_file = os.getcwd() + 'data/input/' + provider + '/isbn_list.txt'
     with open(path_to_file, encoding='utf-8') as f:
         isbns = f.readlines()
         f.close()

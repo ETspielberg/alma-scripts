@@ -6,7 +6,7 @@ import requests
 
 def load_data(filename, library):
     temp_path = 'data/temp/ids_{}.txt'
-    table = pd.read_excel('data/input/' + filename, dtype={'String for Activationform': object, 'Inventory UB Duisburg-Essen': object, 'klickbare URLs': object})
+    table = pd.read_excel('data/input/' + filename, dtype={'String for Activationform': object, '"Bestand UB Duisburg-Essen': object, 'klickbare URLs': object})
     for index, row in table.iterrows():
         try:
             if library in row['String for Activationform']:
@@ -40,9 +40,8 @@ def generate_p2e_output():
 
 
 if __name__ == '__main__':
-    generate_p2e_output()
+    # generate_p2e_output()
     # generate_folders()
-    # filename = 'Collections_NZ.xlsx'
-    # library = 'UB_DuE'
-    # load_data(filename, library)
-    # generate_output()
+    filename = 'Verwaltung-NZ.xlsx'
+    load_data(filename)
+    generate_output()

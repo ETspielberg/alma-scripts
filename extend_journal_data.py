@@ -3,7 +3,8 @@ import json
 import pandas as pd
 import numpy as np
 import requests
-import requests_cache
+
+from cleanup import bubi_coredata
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -13,7 +14,7 @@ except ImportError:
 # ruft die collection id für einen collection-Eintrag ab
 def get_ezb_id(collection):
     # falls keine collection angegeben, ein leeres Feld zurückgeben
-    if collection is '':
+    if collection == '':
         return ''
 
     # die URL zur ezb bilden
@@ -44,9 +45,6 @@ def get_ezb_id(collection):
 
 
 def collect_data(filename):
-    # die einzelnen Abfragen werden gecached, damit nicht mehrfach die gleiche Abfrage durchgeführt wird
-    requests_cache.install_cache('demo_cache')
-
     # der Pfad zu der Originaldatei, in diesem Fall im Unterordner data/input, ausgehend von dem Ort dieser Datei
     path = 'data/input/{}'.format(filename)
 
@@ -85,6 +83,6 @@ def collect_data(filename):
 # python-Standard-Startpunkt für das Skript
 if __name__ == '__main__':
     # der Dateiname der zu erweiternden Datei im Ordner data/input relativ zu dieser Datei
-    filename = 'Migrationsdatei.xlsx'
+    filename = 'Grunddaten_Essen'
     # obige Funktion aufrufen und Daten sammeln
-    collect_data(filename)
+    bubi_coredata.transform_coredata(filename, 'E')

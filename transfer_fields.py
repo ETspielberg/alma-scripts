@@ -79,6 +79,68 @@ def get_holding_ids(table):
     return table
 
 
+def process_holdings(table):
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+    holding_ids = []
+    for index, row in table.iterrows():
+        mms_id = row['MMS-ID'].strip()
+        if mms_id == '':
+            holding_ids.append('')
+            logging.warning('no MMS ID given for ' + row['HT-Nummer'])
+            continue
+        url = '{}/bibs/{}/holdings?apikey={}'.format(alma_api_base_url, mms_id, api_key)
+        response = requests.get(url=url, headers={'Accept': 'application/json'})
+        response.encoding = 'utf-8'
+
+        # Wenn die Abfrage erfolgreich war, das neue Bestellobjekt erzeugen
+        if response.status_code == 200:
+            json = response.json()
+            holdings_list = json['holding']
+            found = False
+            for holding in holdings_list:
+                print(holding['library']['value'])
+                if holding['library']['value'] != 'UNASSIGNED':
+                    delete_fields(mms_id, holding['holding_id'], '852', 'z')
+                    found = True
+            if not found:
+                logging.warning('could not get holding ID from API - library not found in holding list')
+        else:
+            logging.warning('could not get holding ID from API - response was not 200')
+    return table
+
+
+def delete_fields(mms_id, holding_id, field, sub_field):
+    api_key = os.environ['ALMA_SCRIPT_API_KEY']
+    url = '{}/bibs/{}/holdings/{}?apikey={}'.format(alma_api_base_url, mms_id, holding_id, api_key)
+    print(url)
+    try:
+        response = requests.get(url=url, headers={'Accept': 'application/xml'})
+        response.encoding = 'utf-8'
+
+        # Wenn die Abfrage erfolgreich war, das neue Bestellobjekt erzeugen
+        if response.status_code == 200:
+            response_xml = etree.fromstring(response.content)
+            xpath = "//record/datafield[@tag=\'{}\']/subfield[@code=\'{}\']".format(field, sub_field)
+            changed = False
+            for bad in response_xml.xpath(xpath):
+                bad.getparent().remove(bad)
+                changed = True
+            if changed:
+                update = requests.put(url=url, data=etree.tostring(response_xml),
+                                      headers={'Content-Type': 'application/xml', 'Accept': 'application/xml'})
+                # Die Kodierung der Antwort auf UTF-8 festlegen
+                update.encoding = 'utf-8'
+
+                # Prüfen, ob Anfrage erfolgreich war und alles in die Log-Datei schreiben
+                if update.status_code == 200:
+                    logging.info('succesfully updated holding with MMS-ID {} and holding-ID {}'.format(mms_id, holding_id))
+                else:
+                    logging.error('problem updating holding with MMS-ID {} and holding-ID {}: {}'.format(mms_id, holding_id, update.text))
+            print(etree.tostring(response_xml, pretty_print=True, xml_declaration=True))
+    except KeyError:
+        logging.error('could not connect to alma api.')
+
+
 def transfer_field(table, project):
     comment = []
     api_key = os.environ['ALMA_SCRIPT_API_KEY']
@@ -148,14 +210,12 @@ def run_project(project):
 
 
 if __name__ == '__main__':
-    projects = ['field_125']
+    # projects = ['field_125']
+    projects = ['delete_852_z']
     for project in projects:
-        list_filter = run_project(project=project)
+        table = table_reader_service.read_table(project)
+        get_mms_ids(table)
+        process_holdings(table)
 
-        # aus der letzten temporären Datei wird die P2E-Datei erzeugt.
-        # list_filter.generate_p2e_file()
-
-        # aus der letzten temporären Datei wird eine Liste der Feld-Werte erzeugt
-        # list_filter.generate_field_value_list(field='001 ', short=False, format='')
 
     logging.info('finished')

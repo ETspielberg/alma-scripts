@@ -8,6 +8,26 @@ alma_api_base_url = 'https://api-eu.hosted.exlibrisgroup.com/almaws/v1/'
 alma_api_key = os.environ['ALMA_SCRIPT_API_KEY']
 
 
+def get_number_of_portfolios(mms_id):
+    url = '{}bib/{}/portfolios?apikey={}'.format(alma_api_base_url, mms_id, alma_api_key)
+
+    # GET-Abfrage ausführen
+    get = requests.get(url=url, headers={'Accept': 'application/json'})
+
+    # Kodierung auf UTF-8 festsetzen
+    get.encoding = 'utf-8'
+
+    # Prüfen, ob die Abfrage erfolgreich war (Status-Code ist dann 200)
+    if get.status_code == 200:
+        # Den Inhalt der Antwort als Text auslesen
+        return get.json()['total_record_count']
+    elif get.status_code == 404:
+        return 0
+    else:
+        logging.warning('could not retrieve number of portfolios. got error {}: {}'.format(get.status_code, get.text))
+        return 0
+
+
 def retrieve_service_ids(project, collection_ids):
     service_ids = []
     for collection_id in collection_ids:

@@ -40,12 +40,12 @@ def run_project(project):
     # Fügt den Filter hinzu, der prüft, ob die Sys-ID auf einer Pakete Liste enthalten ist.
     # list_filter = add_sys_list_checker(list_filter)
     # list_filter = add_id_checker(list_filter=list_filter, action='append', list='springer_robotics_auswahl')
-    list_filter.test_field_values()
+    # list_filter.test_field_values()
 
     # Filter anwenden
-    # list_filter.filter()
+    list_filter.filter()
     # list_filter.remove_field(['001 ', '078u'])
-    list_filter.generate_field_value_list('540a ', False, format='marc')
+    # list_filter.generate_field_value_list('540a ', False, format='marc')
     return list_filter
 
 
@@ -53,12 +53,12 @@ def run_project(project):
 if __name__ == '__main__':
 
     # projects = ['db', 'zsn', 'ebooks', 'db_lizenzfrei', 'zsn_lizenzfrei', 'ebooks_lizenzfrei', 'collections_from_db']
-    projects = ['springer_all']
+    projects = ['ebooks']
     for project in projects:
         list_filter = run_project(project=project)
 
         # aus der letzten temporären Datei wird die P2E-Datei erzeugt.
-        # list_filter.generate_p2e_file()
+        list_filter.generate_p2e_file()
 
         # aus der letzten temporären Datei wird eine Liste der Feld-Werte erzeugt
         # list_filter.generate_field_value_list(field='001 ', short=False, format='')

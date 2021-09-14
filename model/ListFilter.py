@@ -73,8 +73,8 @@ class ListFilter:
             # Lese die Zeilen in eine Liste.
             lines = input_file.readlines()
             for index, line in enumerate(lines):
-                if not re.search(r'^[0-9]{9}', line):
-                    continue
+                # if not re.search(r'^[0-9]{9}', line):
+                #     continue
                 with open(temp_file, 'a+', encoding="utf8") as output_file:
                     output_file.writelines(line)
                     output_file.close()
